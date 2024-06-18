@@ -1,3 +1,4 @@
+import 'package:example/test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_instagram_storyboard/flutter_instagram_storyboard.dart';
 
@@ -160,7 +161,7 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
       ),
     );
   }
-
+final List<bool> isLike=[false,true,false];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -175,6 +176,7 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
             pageTransform: const StoryPage3DTransform(),
             buttonDatas: [
               StoryButtonData(
+                interactiveWidgets: [],
                 timelineBackgroundColor: Colors.red,
                 buttonDecoration: _buildButtonDecoration('car'),
                 child: _buildButtonChild('Want a new car?'),
@@ -184,16 +186,19 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
                     text:
                         'Want to buy a new car? Get our loan for the rest of your life!',
                     imageName: 'car',
+                    addBottomBar: false,
                   ),
                   _createDummyPage(
                     text:
                         'Can\'t return the loan? Don\'t worry, we\'ll take your soul as a collateral ;-)',
                     imageName: 'car',
+                    addBottomBar: false,
                   ),
                 ],
                 segmentDuration: const Duration(seconds: 3),
               ),
               StoryButtonData(
+                interactiveWidgets: List.generate(3, (index) => InterActiveWidget(color: isLike[index] )),
                 timelineBackgroundColor: Colors.blue,
                 buttonDecoration: _buildButtonDecoration('travel_1'),
                 borderDecoration: _buildBorderDecoration(

@@ -211,6 +211,7 @@ class StoryButtonData {
   final InteractiveInkFeatureFactory? inkFeatureFactory;
   final Widget child;
   final List<Widget> storyPages;
+   final List<Widget>? interactiveWidgets;
   final Widget? closeButton;
   final Duration segmentDuration;
   final BoxDecoration containerBackgroundDecoration;
@@ -262,6 +263,7 @@ class StoryButtonData {
     this.defaultCloseButtonColor = Colors.white,
     this.timelineBackgroundColor = const Color.fromARGB(255, 200, 200, 200),
     this.closeButton,
+    this.interactiveWidgets,
     required this.storyPages,
     required this.child,
     required this.segmentDuration,

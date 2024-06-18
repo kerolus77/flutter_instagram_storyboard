@@ -191,21 +191,12 @@ class _StoryPageContainerBuilderState extends State<StoryPageContainerBuilder>
             bgOpacity = 0.0;
           }
 
-          return ClipRRect(
-            clipper: _PageClipper(
-              borderRadius:
-                  widget.settings.buttonData.borderDecoration.borderRadius
-                      ?.resolve(
-                        null,
-                      )
-                      .bottomLeft,
-              startX: _activeButtonData.buttonCenterPosition?.dx ??
-                  widget.settings.tapPosition.dx,
-              startY: _activeButtonData.buttonCenterPosition?.dy ??
-                  widget.settings.tapPosition.dy,
-              animationValue: animationValue,
-            ),
-            child: Scaffold(
+          return 
+             Scaffold(
+              
+              
+              
+              
               backgroundColor: Colors.transparent,
               body: Container(
                 decoration: widget
@@ -220,32 +211,48 @@ class _StoryPageContainerBuilderState extends State<StoryPageContainerBuilder>
                 child: SafeArea(
                   bottom: widget.settings.safeAreaBottom,
                   top: widget.settings.safeAreaTop,
-                  child: PageView.builder(
-                    physics: _storyPageTransform.pageScrollPhysics,
-                    controller: _pageController,
-                    itemBuilder: ((context, index) {
-                      final childIndex = index % itemCount;
-                      final buttonData =
-                          widget.settings.allButtonDatas[childIndex];
-                      final child = StoryPageContainerView(
-                        buttonData: buttonData,
-                        onClosePressed: _close,
-                        pageController: _pageController,
-                        onStoryComplete: _onStoryComplete,
-                      );
-                      return _storyPageTransform.transform(
-                        context,
-                        child,
-                        childIndex,
-                        _currentPage,
-                        _pageDelta,
-                      );
-                    }),
-                    itemCount: itemCount,
+                  child: ClipRRect(
+                    
+            clipper: _PageClipper(
+              borderRadius:
+                  widget.settings.buttonData.borderDecoration.borderRadius
+                      ?.resolve(
+                        null,
+                      )
+                      .bottomLeft,
+              startX: _activeButtonData.buttonCenterPosition?.dx ??
+                  widget.settings.tapPosition.dx,
+              startY: _activeButtonData.buttonCenterPosition?.dy ??
+                  widget.settings.tapPosition.dy,
+              animationValue: animationValue,
+            ),
+                    child: PageView.builder(
+                      physics: _storyPageTransform.pageScrollPhysics,
+                      controller: _pageController,
+                      itemBuilder: ((context, index) {
+                        final childIndex = index % itemCount;
+                        final buttonData =
+                            widget.settings.allButtonDatas[childIndex];
+                        final child = StoryPageContainerView(
+                          buttonData: buttonData,
+                          onClosePressed: _close,
+                          pageController: _pageController,
+                          onStoryComplete: _onStoryComplete,
+                        );
+                        return _storyPageTransform.transform(
+                          context,
+                          child,
+                          childIndex,
+                          _currentPage,
+                          _pageDelta,
+                        );
+                      }),
+                      itemCount: itemCount,
+                    ),
                   ),
                 ),
               ),
-            ),
+            
           );
         },
       ),
