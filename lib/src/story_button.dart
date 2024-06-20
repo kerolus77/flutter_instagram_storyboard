@@ -212,6 +212,7 @@ class StoryButtonData {
   final Widget child;
   final List<Widget> storyPages;
    final List<Widget>? interactiveWidgets;
+   final FocusNode? focusNode;
   final Widget? closeButton;
   final Duration segmentDuration;
   final BoxDecoration containerBackgroundDecoration;
@@ -264,6 +265,7 @@ class StoryButtonData {
     this.timelineBackgroundColor = const Color.fromARGB(255, 200, 200, 200),
     this.closeButton,
     this.interactiveWidgets,
+    this.focusNode,
     required this.storyPages,
     required this.child,
     required this.segmentDuration,

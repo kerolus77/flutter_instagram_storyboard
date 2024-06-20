@@ -111,6 +111,7 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
   }
 
   Widget _buildButtonChild(String text) {
+    
     return Padding(
       padding: const EdgeInsets.all(5.0),
       child: Column(
@@ -161,9 +162,17 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
       ),
     );
   }
+  final FocusNode focusNode=FocusNode();
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    super.dispose();
+  }
 final List<bool> isLike=[false,true,false];
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       appBar: AppBar(
         elevation: 0.0,
@@ -175,31 +184,12 @@ final List<bool> isLike=[false,true,false];
             listHeight: 180.0,
             pageTransform: const StoryPage3DTransform(),
             buttonDatas: [
+              
+               
               StoryButtonData(
-                interactiveWidgets: [],
-                timelineBackgroundColor: Colors.red,
-                buttonDecoration: _buildButtonDecoration('car'),
-                child: _buildButtonChild('Want a new car?'),
-                borderDecoration: _buildBorderDecoration(Colors.red),
-                storyPages: [
-                  _createDummyPage(
-                    text:
-                        'Want to buy a new car? Get our loan for the rest of your life!',
-                    imageName: 'car',
-                    addBottomBar: false,
-                  ),
-                  _createDummyPage(
-                    text:
-                        'Can\'t return the loan? Don\'t worry, we\'ll take your soul as a collateral ;-)',
-                    imageName: 'car',
-                    addBottomBar: false,
-                  ),
-                ],
-                segmentDuration: const Duration(seconds: 3),
-              ),
-              StoryButtonData(
-                interactiveWidgets: List.generate(3, (index) => InterActiveWidget(color: isLike[index] )),
+                interactiveWidgets: List.generate(3, (index) => InterActiveWidget(color: isLike[index], focusNode: focusNode,)),
                 timelineBackgroundColor: Colors.blue,
+                focusNode: focusNode,
                 buttonDecoration: _buildButtonDecoration('travel_1'),
                 borderDecoration: _buildBorderDecoration(
                     const Color.fromARGB(255, 134, 119, 95)),

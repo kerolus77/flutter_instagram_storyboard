@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_instagram_storyboard/flutter_instagram_storyboard.dart';
 import 'package:flutter_instagram_storyboard/src/first_build_mixin.dart';
 
+import 'text_filed_finder.dart';
+
 class StoryPageContainerView extends StatefulWidget {
   final StoryButtonData buttonData;
   final VoidCallback onStoryComplete;
@@ -32,7 +34,8 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
   double _pageValue = 0.0;
   bool _isInteracting = false; // Track if user is interacting
   FocusNode _focusNode = FocusNode(); 
-  List<FocusNode> _textFieldFocusNodes = [];
+  
+  
 
   @override
   void initState() {
@@ -40,11 +43,7 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
         widget.buttonData.storyController ?? StoryTimelineController();
     _stopwatch.start();
     _storyController.addListener(_onTimelineEvent);
-     // Initialize focus nodes for each story page
-    _textFieldFocusNodes = List.generate(
-      widget.buttonData.storyPages.length,
-      (index) => FocusNode(),
-    );
+   
     super.initState();
   }
 
@@ -150,7 +149,10 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
   }
   // Wrapping interactive widgets with GestureDetector to stop event propagation
   return GestureDetector(
-    onTap: () {},
+    onTap: () {
+
+      _focusNode.unfocus();
+    },
     child: widget.buttonData.storyPages[_curSegmentIndex],
   );
 }
@@ -163,16 +165,13 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
     return position.dx <= (storyWidth * .499);
   }
 
-Widget _buildInteractiveWidgets() {
-  if (widget.buttonData.interactiveWidgets == null ||
-      widget.buttonData.interactiveWidgets!.isEmpty) {
-    return Container();
-  }
 
-  return GestureDetector(
-    
-    child: Focus(
-      focusNode: _textFieldFocusNodes[_curSegmentIndex],
+
+  Widget _buildInteractiveWidget() {
+    final interactiveWidget = widget.buttonData.interactiveWidgets?[_curSegmentIndex];
+    if (interactiveWidget != null) {
+      return Focus(
+      focusNode:_focusNode,
       onFocusChange: (bool hasFocus) {
         setState(() {
           _isInteracting = hasFocus;
@@ -183,113 +182,144 @@ Widget _buildInteractiveWidgets() {
           }
         });
       },
-      child: widget.buttonData.interactiveWidgets![_curSegmentIndex],
-    ),
+      child: TextFieldFinder(
+        child: interactiveWidget,
+        focusNode: _focusNode,
+      )
+    
   );
-}
-
-
-   Widget _buildPageStructure() {
-    return Stack(
-      children: [
-        GestureDetector(
-
-         onVerticalDragStart: (details) {
-      final storyHeight = context.size!.height;
-      final dragStartY = details.localPosition.dy;
-      // Adjust the threshold as needed to determine when to open the keyboard
-      final openKeyboardThreshold = storyHeight * 0.7;
-      if (dragStartY >= openKeyboardThreshold) {
-        // Focus the text field and open keyboard
-        _textFieldFocusNodes[_curSegmentIndex].requestFocus();
-        FocusScope.of(context).requestFocus(_textFieldFocusNodes[_curSegmentIndex]);
-        // Ensure the keyboard is open by unfocusing immediately
-        _textFieldFocusNodes[_curSegmentIndex].unfocus();
-        // Delay refocus to ensure it happens after the keyboard is fully shown
-        Future.delayed(Duration(milliseconds: 200), () {
-          FocusScope.of(context).requestFocus(_textFieldFocusNodes[_curSegmentIndex]);
-        });
-      }
-    },
-          onTap: () {
-            _textFieldFocusNodes[_curSegmentIndex].unfocus();
-             // Unfocus the text field when tapping elsewhere
-          },
-          onLongPressStart: (details) {
-            _storyController.pause();
-          },
-          onLongPressEnd: (details) {
-            _storyController.unpause();
-          },
-          child: Listener(
-            onPointerDown: (PointerDownEvent event) {
-              _pointerDownMillis = _stopwatch.elapsedMilliseconds;
-              _pointerDownPosition = event.position;
-              if (_isInteracting) {
-                _storyController.unpause();
-                _isInteracting = false;
-                _textFieldFocusNodes[_curSegmentIndex].unfocus(); // Unfocus the text field
-              }
-            },
-            onPointerUp: (PointerUpEvent event) {
-              final pointerUpMillis = _stopwatch.elapsedMilliseconds;
-              final maxPressMillis = 200;
-              final diffMillis = pointerUpMillis - _pointerDownMillis;
-              if (diffMillis <= maxPressMillis) {
-                final position = event.position;
-                final distance = (position - _pointerDownPosition).distance;
-                if (distance < 5.0 && !_isInteracting) {
-                  final isLeft = _isLeftPartOfStory(position);
-                  _focusNode.unfocus();
-                  if (isLeft) {
-                    _storyController.previousSegment();
-                  } else {
-                    _storyController.nextSegment();
-                  }
-                }
-              }
-              if (_isInteracting) {
-                _storyController.unpause();
-                _isInteracting = false;
-                _textFieldFocusNodes[_curSegmentIndex].unfocus(); // Unfocus the text field
-              }
-            },
-            child: SizedBox(
-              width: double.infinity,
-              height: double.infinity,
-              child: _buildPageContent(),
-            ),
-          ),
-        ),
-        SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildTimeline(),
-              _buildCloseButton(),
-            ],
-          ),
-        ),
-        Positioned(
-          bottom: 20.0,
-          // left: 20.0,
-          // right: 20.0,
-          child: _buildInteractiveWidgets(),
-        ),
-      ],
-    );
+    }
+    return SizedBox.shrink();
   }
 
+  // Widget _buildTextField() {
+  //   return Positioned(
+  //     bottom: 10,
+  //     left: 10,
+  //     right: 10,
+  //     child: TextField(
+  //       focusNode: _textFieldFocusNodes[_curSegmentIndex],
+  //       controller: _textControllers[_curSegmentIndex],
+  //       decoration: InputDecoration(
+  //         hintText: 'Type something...',
+  //         border: OutlineInputBorder(),
+  //       ),
+  //     ),
+  //   );
+  // }
+bool isKeyboardOpen() {
+  
+  return WidgetsBinding.instance.window.viewInsets.bottom > 0.0;
+}
 
+  Widget _buildPageStructure() {
+  return Stack(
+    children: [
+      GestureDetector(
+  onVerticalDragEnd: (details) {
+    final primaryVelocity = details.primaryVelocity ?? 0;
+    if (primaryVelocity < 0) {
+      // Swiped up
+      widget.buttonData.focusNode?.requestFocus();
+      _storyController.pause();
+      
+      // Check if keyboard is open and close it
+      if (isKeyboardOpen()) {
+        FocusManager.instance.primaryFocus?.unfocus();
+      }
+    } else if (primaryVelocity > 0) {
+      // Swiped down
+      if (isKeyboardOpen()) {
+        FocusManager.instance.primaryFocus?.unfocus();
+        
+      }else{
+         // Close the story
+      widget.onClosePressed?.call();
+      }
+      
+     
+    }
+  },
+        onTap: () {
+          // _textFieldFocusNodes[_curSegmentIndex].unfocus(); 
+          widget.buttonData.focusNode!.unfocus();
+          _focusNode.unfocus();
+          _storyController.unpause();
+        },
+        onLongPressStart: (details) {
+          _storyController.pause();
+        },
+        onLongPressEnd: (details) {
+          _storyController.unpause();
+        },
+        child: Listener(
+          onPointerDown: (PointerDownEvent event) {
+            _pointerDownMillis = _stopwatch.elapsedMilliseconds;
+            _pointerDownPosition = event.position;
+            if (_isInteracting) {
+              _storyController.unpause();
+              _isInteracting = false;
+              // _textFieldFocusNodes[_curSegmentIndex].unfocus(); // Unfocus the text field
+              widget.buttonData.focusNode?.unfocus();
+              _focusNode.unfocus();
+            }
+          },
+          onPointerUp: (PointerUpEvent event) {
+            final pointerUpMillis = _stopwatch.elapsedMilliseconds;
+            final maxPressMillis = 200;
+            final diffMillis = pointerUpMillis - _pointerDownMillis;
+            if (diffMillis <= maxPressMillis) {
+              final position = event.position;
+              final distance = (position - _pointerDownPosition).distance;
+              if (distance < 5.0 && !_isInteracting) {
+                final isLeft = _isLeftPartOfStory(position);
+                _focusNode.unfocus();
+                if (isLeft) {
+                  _storyController.previousSegment();
+                } else {
+                  _storyController.nextSegment();
+                }
+              }
+            }
+            if (_isInteracting) {
+              _storyController.unpause();
+              _isInteracting = false;
+              widget.buttonData.focusNode!.unfocus();
+              _focusNode.unfocus();
+            }
+          },
+          child: SizedBox(
+            width: double.infinity,
+            height: double.infinity,
+            child: _buildPageContent(),
+          ),
+        ),
+      ),
+      SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildTimeline(),
+            _buildCloseButton(),
+          ],
+        ),
+      ),
+      Positioned(
+        bottom: 0,
+        right: 0,
+        left: 0,
+        child: _buildInteractiveWidget())
+    ],
+  );
+}
     @override
   void dispose() {
     widget.pageController?.removeListener(_onPageControllerUpdate);
     _stopwatch.stop();
     _storyController.removeListener(_onTimelineEvent);
-    // Dispose of all focus nodes
-    for (var focusNode in _textFieldFocusNodes) {
-      focusNode.dispose();
-    }
+    
+    _focusNode.dispose();
+     
     super.dispose();
   }
 
