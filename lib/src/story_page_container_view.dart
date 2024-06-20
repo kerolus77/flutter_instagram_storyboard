@@ -271,9 +271,9 @@ Widget _buildInteractiveWidgets() {
           ),
         ),
         Positioned(
-          bottom: 20.0,
-          left: 20.0,
-          right: 20.0,
+          // bottom: 20.0,
+          // left: 20.0,
+          // right: 20.0,
           child: _buildInteractiveWidgets(),
         ),
       ],
