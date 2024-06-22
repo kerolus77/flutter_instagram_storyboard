@@ -1,10 +1,11 @@
-import 'dart:async';
+ import 'dart:async';
 import 'dart:collection';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_instagram_storyboard/flutter_instagram_storyboard.dart';
 import 'package:flutter_instagram_storyboard/src/first_build_mixin.dart';
+
+import 'text_filed_finder.dart';
 
 class StoryPageContainerView extends StatefulWidget {
   final StoryButtonData buttonData;
@@ -31,6 +32,10 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
   Offset _pointerDownPosition = Offset.zero;
   int _pointerDownMillis = 0;
   double _pageValue = 0.0;
+  bool _isInteracting = false; // Track if user is interacting
+  FocusNode _focusNode = FocusNode(); 
+  
+  
 
   @override
   void initState() {
@@ -38,6 +43,7 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
         widget.buttonData.storyController ?? StoryTimelineController();
     _stopwatch.start();
     _storyController.addListener(_onTimelineEvent);
+   
     super.initState();
   }
 
@@ -132,17 +138,24 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
     return widget.buttonData.currentSegmentIndex;
   }
 
-  Widget _buildPageContent() {
-    if (widget.buttonData.storyPages.isEmpty) {
-      return Container(
-        color: Colors.orange,
-        child: const Center(
-          child: Text('No pages'),
-        ),
-      );
-    }
-    return widget.buttonData.storyPages[_curSegmentIndex];
+ Widget _buildPageContent() {
+  if (widget.buttonData.storyPages.isEmpty) {
+    return Container(
+      color: Colors.orange,
+      child: const Center(
+        child: Text('No pages'),
+      ),
+    );
   }
+  // Wrapping interactive widgets with GestureDetector to stop event propagation
+  return GestureDetector(
+    onTap: () {
+
+      _focusNode.unfocus();
+    },
+    child: widget.buttonData.storyPages[_curSegmentIndex],
+  );
+}
 
   bool _isLeftPartOfStory(Offset position) {
     if (!mounted) {
@@ -151,6 +164,55 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
     final storyWidth = context.size!.width;
     return position.dx <= (storyWidth * .499);
   }
+
+
+
+
+  Widget _buildInteractiveWidget() {
+    final interactiveWidget = widget.buttonData.interactiveWidgets?[_curSegmentIndex];
+    if (interactiveWidget != null) {
+      return Focus(
+      focusNode:_focusNode,
+      onFocusChange: (bool hasFocus) {
+        setState(() {
+          _isInteracting = hasFocus;
+          if (hasFocus) {
+            _storyController.pause();
+          } else {
+            _storyController.unpause();
+          }
+        });
+      },
+      child: TextFieldFinder(
+        child: interactiveWidget,
+        focusNode: _focusNode,
+      )
+    
+  );
+    }
+    return SizedBox.shrink();
+  }
+
+  // Widget _buildTextField() {
+  //   return Positioned(
+  //     bottom: 10,
+  //     left: 10,
+  //     right: 10,
+  //     child: TextField(
+  //       focusNode: _textFieldFocusNodes[_curSegmentIndex],
+  //       controller: _textControllers[_curSegmentIndex],
+  //       decoration: InputDecoration(
+  //         hintText: 'Type something...',
+  //         border: OutlineInputBorder(),
+  //       ),
+  //     ),
+  //   );
+  // }
+bool isKeyboardOpen() {
+  
+  return WidgetsBinding.instance.window.viewInsets.bottom > 0.0;
+}
+
 
   Widget _buildPageStructure() {
   return Stack(
@@ -181,7 +243,7 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
     }
   },
         onTap: () {
-         
+
           widget.buttonData.focusNode!.unfocus();
           _focusNode.unfocus();
           _storyController.unpause();
@@ -199,7 +261,7 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
             if (_isInteracting) {
               _storyController.unpause();
               _isInteracting = false;
-              
+
               widget.buttonData.focusNode?.unfocus();
               _focusNode.unfocus();
             }
@@ -257,6 +319,9 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
     widget.pageController?.removeListener(_onPageControllerUpdate);
     _stopwatch.stop();
     _storyController.removeListener(_onTimelineEvent);
+    
+    _focusNode.dispose();
+     
     super.dispose();
   }
 
