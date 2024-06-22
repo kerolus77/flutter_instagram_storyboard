@@ -2,6 +2,8 @@ import 'package:example/test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_instagram_storyboard/flutter_instagram_storyboard.dart';
 
+import 'test.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -149,7 +151,6 @@ final StoryTimelineController controller=StoryTimelineController();
       ),
     );
   }
-  final FocusNode focusNode=FocusNode();
 
   @override
   void dispose() {
@@ -198,8 +199,8 @@ final List<bool> isLike=[false,true,false];
                 segmentDuration: const Duration(seconds: 3),
               ),
               StoryButtonData(
-               markAsWatchedOnCreate: controller.currentSegmentIndex==1?true:false,
-                
+               markAsWatchedOnCreate: controller.currentSegmentIndex==2?true:false,
+                focusNode:focusNode,
                  storyController: controller,
 
                 interactiveWidgets: List.generate(3, (index) => InterActiveWidget(color: isLike[index], focusNode: focusNode,)),

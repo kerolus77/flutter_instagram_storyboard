@@ -3,8 +3,6 @@ import 'package:flutter_instagram_storyboard/flutter_instagram_storyboard.dart';
 import 'package:flutter_instagram_storyboard/src/first_build_mixin.dart';
 import 'package:flutter_instagram_storyboard/src/set_state_after_frame_mixin.dart';
 
-import 'story_page_container_view.dart';
-
 class StoryPageContainerBuilder extends StatefulWidget {
   final Animation<double> animation;
   final StoryContainerSettings settings;
@@ -191,12 +189,21 @@ class _StoryPageContainerBuilderState extends State<StoryPageContainerBuilder>
             bgOpacity = 0.0;
           }
 
-          return 
-             Scaffold(
-              
-              
-              
-              
+          return ClipRRect(
+            clipper: _PageClipper(
+              borderRadius:
+                  widget.settings.buttonData.borderDecoration.borderRadius
+                      ?.resolve(
+                        null,
+                      )
+                      .bottomLeft,
+              startX: _activeButtonData.buttonCenterPosition?.dx ??
+                  widget.settings.tapPosition.dx,
+              startY: _activeButtonData.buttonCenterPosition?.dy ??
+                  widget.settings.tapPosition.dy,
+              animationValue: animationValue,
+            ),
+            child: Scaffold(
               backgroundColor: Colors.transparent,
               body: Container(
                 decoration: widget
@@ -211,48 +218,40 @@ class _StoryPageContainerBuilderState extends State<StoryPageContainerBuilder>
                 child: SafeArea(
                   bottom: widget.settings.safeAreaBottom,
                   top: widget.settings.safeAreaTop,
-                  child: ClipRRect(
-                    
-            clipper: _PageClipper(
-              borderRadius:
-                  widget.settings.buttonData.borderDecoration.borderRadius
-                      ?.resolve(
-                        null,
-                      )
-                      .bottomLeft,
-              startX: _activeButtonData.buttonCenterPosition?.dx ??
-                  widget.settings.tapPosition.dx,
-              startY: _activeButtonData.buttonCenterPosition?.dy ??
-                  widget.settings.tapPosition.dy,
-              animationValue: animationValue,
-            ),
-                    child: PageView.builder(
-                      physics: _storyPageTransform.pageScrollPhysics,
-                      controller: _pageController,
-                      itemBuilder: ((context, index) {
-                        final childIndex = index % itemCount;
-                        final buttonData =
-                            widget.settings.allButtonDatas[childIndex];
-                        final child = StoryPageContainerView(
-                          buttonData: buttonData,
-                          onClosePressed: _close,
-                          pageController: _pageController,
-                          onStoryComplete: _onStoryComplete,
-                        );
-                        return _storyPageTransform.transform(
-                          context,
-                          child,
-                          childIndex,
-                          _currentPage,
-                          _pageDelta,
-                        );
-                      }),
-                      itemCount: itemCount,
-                    ),
+                  child: PageView.builder(
+                    physics: _storyPageTransform.pageScrollPhysics,
+                    controller: _pageController,
+                    itemBuilder: ((context, index) {
+                      final childIndex = index % itemCount;
+                      final buttonData =
+                          widget.settings.allButtonDatas[childIndex];
+                      final child = StoryPageContainerView(
+                        buttonData: buttonData,
+                        onClosePressed: _close,
+                        pageController: _pageController,
+                        onStoryComplete: _onStoryComplete,
+                      );
+                      return _storyPageTransform.transform(
+                        context,
+                        child,
+                        childIndex,
+                        _currentPage,
+                        _pageDelta,
+                        (index) {
+                          if(widget.settings.allButtonDatas[childIndex].currentIndex>=widget.settings.allButtonDatas[childIndex].storyPages.length-1||widget.settings.buttonData.markAsWatchedOnCreate){
+                            widget.settings.allButtonDatas[childIndex].markAsWatched();
+
+                          }
+                          // widget.settings.buttonData.markAsWatched();
+
+                        },
+                      );
+                    }),
+                    itemCount: itemCount,
                   ),
                 ),
               ),
-            
+            ),
           );
         },
       ),

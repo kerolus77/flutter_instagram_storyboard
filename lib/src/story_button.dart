@@ -226,8 +226,10 @@ class StoryButtonData {
   final InteractiveInkFeatureFactory? inkFeatureFactory;
   final Widget child;
   final List<Widget> storyPages;
-   final List<Widget>? interactiveWidgets;
-   final FocusNode? focusNode;
+
+  final List<Widget>? interactiveWidgets;
+  final FocusNode? focusNode;
+
   final Widget? closeButton;
   final Duration segmentDuration;
   final BoxDecoration containerBackgroundDecoration;
