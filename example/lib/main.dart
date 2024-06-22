@@ -1,3 +1,4 @@
+import 'package:example/test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_instagram_storyboard/flutter_instagram_storyboard.dart';
 
@@ -99,6 +100,7 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
 final StoryTimelineController controller=StoryTimelineController();
 
   Widget _buildButtonChild(String text) {
+    
     return Padding(
       padding: const EdgeInsets.all(5.0),
       child: Column(
@@ -149,11 +151,20 @@ final StoryTimelineController controller=StoryTimelineController();
       ),
     );
   }
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    super.dispose();
+  }
 final List<bool> isLike=[false,true,false];
- final FocusNode focusNode=FocusNode();
   @override
   Widget build(BuildContext context) {
+
     print('cxxxxxxxxxxxxx${controller.currentSegmentIndex==2}');
+=======
+    
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0.0,
@@ -165,7 +176,10 @@ final List<bool> isLike=[false,true,false];
             listHeight: 180.0,
             pageTransform: const StoryPage3DTransform(),
             buttonDatas: [
+              
+               
               StoryButtonData(
+
                 timelineBackgroundColor: Colors.red,
                 buttonDecoration: _buildButtonDecoration('car'),
                 child: _buildButtonChild('Want a new car?'),
@@ -188,8 +202,10 @@ final List<bool> isLike=[false,true,false];
                markAsWatchedOnCreate: controller.currentSegmentIndex==2?true:false,
                 focusNode:focusNode,
                  storyController: controller,
+
                 interactiveWidgets: List.generate(3, (index) => InterActiveWidget(color: isLike[index], focusNode: focusNode,)),
                 timelineBackgroundColor: Colors.blue,
+                focusNode: focusNode,
                 buttonDecoration: _buildButtonDecoration('travel_1'),
                 borderDecoration: _buildBorderDecoration(
                     const Color.fromARGB(255, 134, 119, 95)),

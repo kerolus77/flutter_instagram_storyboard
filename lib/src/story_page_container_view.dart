@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_instagram_storyboard/flutter_instagram_storyboard.dart';
 import 'package:flutter_instagram_storyboard/src/first_build_mixin.dart';
 
+
 import 'textfield_finder.dart';
+
 
 class StoryPageContainerView extends StatefulWidget {
   final StoryButtonData buttonData;
@@ -167,6 +169,7 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
 
 
 
+
   Widget _buildInteractiveWidget() {
     final interactiveWidget = widget.buttonData.interactiveWidgets?[_curSegmentIndex];
     if (interactiveWidget != null) {
@@ -212,6 +215,7 @@ bool isKeyboardOpen() {
   return WidgetsBinding.instance.window.viewInsets.bottom > 0.0;
 }
 
+
   Widget _buildPageStructure() {
   return Stack(
     children: [
@@ -241,7 +245,7 @@ bool isKeyboardOpen() {
     }
   },
         onTap: () {
-          // _textFieldFocusNodes[_curSegmentIndex].unfocus(); 
+
           widget.buttonData.focusNode!.unfocus();
           _focusNode.unfocus();
           _storyController.unpause();
@@ -259,7 +263,7 @@ bool isKeyboardOpen() {
             if (_isInteracting) {
               _storyController.unpause();
               _isInteracting = false;
-              // _textFieldFocusNodes[_curSegmentIndex].unfocus(); // Unfocus the text field
+
               widget.buttonData.focusNode?.unfocus();
               _focusNode.unfocus();
             }
