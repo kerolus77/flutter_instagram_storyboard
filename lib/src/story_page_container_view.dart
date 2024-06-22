@@ -1,10 +1,11 @@
-import 'dart:async';
+ import 'dart:async';
 import 'dart:collection';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_instagram_storyboard/flutter_instagram_storyboard.dart';
 import 'package:flutter_instagram_storyboard/src/first_build_mixin.dart';
+
+import 'textfield_finder.dart';
 
 class StoryPageContainerView extends StatefulWidget {
   final StoryButtonData buttonData;
@@ -31,6 +32,10 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
   Offset _pointerDownPosition = Offset.zero;
   int _pointerDownMillis = 0;
   double _pageValue = 0.0;
+  bool _isInteracting = false; // Track if user is interacting
+  FocusNode _focusNode = FocusNode(); 
+  
+  
 
   @override
   void initState() {
@@ -38,6 +43,7 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
         widget.buttonData.storyController ?? StoryTimelineController();
     _stopwatch.start();
     _storyController.addListener(_onTimelineEvent);
+   
     super.initState();
   }
 
@@ -132,17 +138,24 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
     return widget.buttonData.currentSegmentIndex;
   }
 
-  Widget _buildPageContent() {
-    if (widget.buttonData.storyPages.isEmpty) {
-      return Container(
-        color: Colors.orange,
-        child: const Center(
-          child: Text('No pages'),
-        ),
-      );
-    }
-    return widget.buttonData.storyPages[_curSegmentIndex];
+ Widget _buildPageContent() {
+  if (widget.buttonData.storyPages.isEmpty) {
+    return Container(
+      color: Colors.orange,
+      child: const Center(
+        child: Text('No pages'),
+      ),
+    );
   }
+  // Wrapping interactive widgets with GestureDetector to stop event propagation
+  return GestureDetector(
+    onTap: () {
+
+      _focusNode.unfocus();
+    },
+    child: widget.buttonData.storyPages[_curSegmentIndex],
+  );
+}
 
   bool _isLeftPartOfStory(Offset position) {
     if (!mounted) {
@@ -151,6 +164,53 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
     final storyWidth = context.size!.width;
     return position.dx <= (storyWidth * .499);
   }
+
+
+
+  Widget _buildInteractiveWidget() {
+    final interactiveWidget = widget.buttonData.interactiveWidgets?[_curSegmentIndex];
+    if (interactiveWidget != null) {
+      return Focus(
+      focusNode:_focusNode,
+      onFocusChange: (bool hasFocus) {
+        setState(() {
+          _isInteracting = hasFocus;
+          if (hasFocus) {
+            _storyController.pause();
+          } else {
+            _storyController.unpause();
+          }
+        });
+      },
+      child: TextFieldFinder(
+        child: interactiveWidget,
+        focusNode: _focusNode,
+      )
+    
+  );
+    }
+    return SizedBox.shrink();
+  }
+
+  // Widget _buildTextField() {
+  //   return Positioned(
+  //     bottom: 10,
+  //     left: 10,
+  //     right: 10,
+  //     child: TextField(
+  //       focusNode: _textFieldFocusNodes[_curSegmentIndex],
+  //       controller: _textControllers[_curSegmentIndex],
+  //       decoration: InputDecoration(
+  //         hintText: 'Type something...',
+  //         border: OutlineInputBorder(),
+  //       ),
+  //     ),
+  //   );
+  // }
+bool isKeyboardOpen() {
+  
+  return WidgetsBinding.instance.window.viewInsets.bottom > 0.0;
+}
 
   Widget _buildPageStructure() {
   return Stack(
@@ -181,7 +241,7 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
     }
   },
         onTap: () {
-         
+          // _textFieldFocusNodes[_curSegmentIndex].unfocus(); 
           widget.buttonData.focusNode!.unfocus();
           _focusNode.unfocus();
           _storyController.unpause();
@@ -199,7 +259,7 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
             if (_isInteracting) {
               _storyController.unpause();
               _isInteracting = false;
-              
+              // _textFieldFocusNodes[_curSegmentIndex].unfocus(); // Unfocus the text field
               widget.buttonData.focusNode?.unfocus();
               _focusNode.unfocus();
             }
@@ -257,6 +317,9 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
     widget.pageController?.removeListener(_onPageControllerUpdate);
     _stopwatch.stop();
     _storyController.removeListener(_onTimelineEvent);
+    
+    _focusNode.dispose();
+     
     super.dispose();
   }
 
@@ -278,9 +341,8 @@ typedef StoryTimelineCallback = Function(StoryTimelineEvent);
 
 class StoryTimelineController {
   _StoryTimelineState? _state;
- bool _isStoryWatched = false;
-  bool _areAllSegmentsWatched = false;
-  int _curSegmentIndex = 0;
+
+
   final HashSet<StoryTimelineCallback> _listeners =
       HashSet<StoryTimelineCallback>();
 
@@ -294,12 +356,11 @@ class StoryTimelineController {
 
   void _onStoryComplete() {
     _notifyListeners(StoryTimelineEvent.storyComplete);
-    
   }
 
   void _onSegmentComplete() {
     _notifyListeners(StoryTimelineEvent.segmentComplete);
-    _areAllSegmentsWatched=true;  }
+  }
 
   void _notifyListeners(StoryTimelineEvent event) {
     for (var e in _listeners) {
@@ -330,17 +391,11 @@ class StoryTimelineController {
   void dispose() {
     _listeners.clear();
   }
-   bool get isWatched {
-    return _isStoryWatched;
-  }
 
-  bool get allSegmentsWatched {
-    return _areAllSegmentsWatched;
-  }
   int get currentSegmentIndex {
-    print(_state?.curSegmentIndex);
-    return _state?.curSegmentIndex??0;
-}}
+    return _state?._curSegmentIndex ?? 0;
+  }
+}
 
 class StoryTimeline extends StatefulWidget {
   final StoryTimelineController controller;
@@ -395,7 +450,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
           _onStoryComplete();
         } else {
           _accumulatedTime = 0;
-          curSegmentIndex++;
+          _curSegmentIndex++;
           _onSegmentComplete();
         }
       }
@@ -407,7 +462,6 @@ class _StoryTimelineState extends State<StoryTimeline> {
     if (widget.buttonData.storyWatchedContract ==
         StoryWatchedContract.onStoryEnd) {
       widget.buttonData.markAsWatched();
-      widget.buttonData.isStoryWatched = true;
     }
     widget.controller._onStoryComplete();
   }
@@ -416,22 +470,19 @@ class _StoryTimelineState extends State<StoryTimeline> {
     if (widget.buttonData.storyWatchedContract ==
         StoryWatchedContract.onSegmentEnd) {
       widget.buttonData.markAsWatched();
-      widget.buttonData.areAllSegmentsWatched = true;
-    
     }
-    
     widget.controller._onSegmentComplete();
   }
 
   bool get _isLastSegment {
-    return curSegmentIndex == _numSegments - 1;
+    return _curSegmentIndex == _numSegments - 1;
   }
 
   int get _numSegments {
     return widget.buttonData.storyPages.length;
   }
 
-  set curSegmentIndex(int value) {
+  set _curSegmentIndex(int value) {
     if (value >= _numSegments) {
       value = _numSegments - 1;
     } else if (value < 0) {
@@ -440,7 +491,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
     widget.buttonData.currentSegmentIndex = value;
   }
 
-  int get curSegmentIndex {
+  int get _curSegmentIndex {
     return widget.buttonData.currentSegmentIndex;
   }
 
@@ -450,7 +501,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
       widget.controller._onStoryComplete();
     } else {
       _accumulatedTime = 0;
-      curSegmentIndex++;
+      _curSegmentIndex++;
       _onSegmentComplete();
     }
   }
@@ -460,7 +511,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
       _accumulatedTime = 0;
     } else {
       _accumulatedTime = 0;
-      curSegmentIndex--;
+      _curSegmentIndex--;
       _onSegmentComplete();
     }
   }
@@ -488,7 +539,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
         painter: _TimelinePainter(
           fillColor: widget.buttonData.timelineFillColor,
           backgroundColor: widget.buttonData.timelineBackgroundColor,
-          curSegmentIndex: curSegmentIndex,
+          curSegmentIndex: _curSegmentIndex,
           numSegments: _numSegments,
           percent: _accumulatedTime / _maxAccumulator,
           spacing: widget.buttonData.timelineSpacing,

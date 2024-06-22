@@ -3,8 +3,6 @@ import 'package:flutter_instagram_storyboard/flutter_instagram_storyboard.dart';
 import 'package:flutter_instagram_storyboard/src/first_build_mixin.dart';
 import 'package:flutter_instagram_storyboard/src/set_state_after_frame_mixin.dart';
 
-import 'story_page_container_view.dart';
-
 class StoryPageContainerBuilder extends StatefulWidget {
   final Animation<double> animation;
   final StoryContainerSettings settings;
@@ -239,6 +237,14 @@ class _StoryPageContainerBuilderState extends State<StoryPageContainerBuilder>
                         childIndex,
                         _currentPage,
                         _pageDelta,
+                        (index) {
+                          if(widget.settings.allButtonDatas[childIndex].currentIndex>=widget.settings.allButtonDatas[childIndex].storyPages.length-1||widget.settings.buttonData.markAsWatchedOnCreate){
+                            widget.settings.allButtonDatas[childIndex].markAsWatched();
+
+                          }
+                          // widget.settings.buttonData.markAsWatched();
+
+                        },
                       );
                     }),
                     itemCount: itemCount,
