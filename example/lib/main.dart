@@ -32,51 +32,15 @@ class StoryExamplePage extends StatefulWidget {
 
 class _StoryExamplePageState extends State<StoryExamplePage> {
   static const double _borderRadius = 100.0;
-
+  // StoryButtonData().markAsWatched();
   Widget _createDummyPage({
     required String text,
     required String imageName,
     bool addBottomBar = true,
+      StoryTimelineController? controller,
   }) {
     return StoryPageScaffold(
-      bottomNavigationBar: addBottomBar
-          ? SizedBox(
-              width: double.infinity,
-              height: kBottomNavigationBarHeight,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8.0,
-                  horizontal: 20.0,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        width: double.infinity,
-                        height: double.infinity,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 2.0,
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            _borderRadius,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Icon(
-                        Icons.send,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          : const SizedBox.shrink(),
+      
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -91,9 +55,30 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
+
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              GestureDetector(
+                onTap: () {
+                 
+                  controller!.pause();
+                },
+                child: 
+                     Container(
+                        color: Colors.black.withOpacity(0.5),
+                        padding: const EdgeInsets.all(8.0),
+                        child: const Text(
+                          'Tap to see more',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    
+              ),
               Text(
                 text,
                 style: const TextStyle(
@@ -101,13 +86,15 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
                   fontSize: 30.0,
                   fontWeight: FontWeight.bold,
                 ),
-              )
+              ),
+              
             ],
           ),
         ),
       ),
     );
   }
+final StoryTimelineController controller=StoryTimelineController();
 
   Widget _buildButtonChild(String text) {
     return Padding(
@@ -163,6 +150,7 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
 
   @override
   Widget build(BuildContext context) {
+    print('cxxxxxxxxxxxxx${controller.currentSegmentIndex==2}');
     return Scaffold(
       appBar: AppBar(
         elevation: 0.0,
@@ -194,6 +182,10 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
                 segmentDuration: const Duration(seconds: 3),
               ),
               StoryButtonData(
+               markAsWatchedOnCreate: controller.currentSegmentIndex==1?true:false,
+                
+                 storyController: controller,
+                interactiveWidgets: List.generate(3, (index) => InterActiveWidget(color: isLike[index], focusNode: focusNode,)),
                 timelineBackgroundColor: Colors.blue,
                 buttonDecoration: _buildButtonDecoration('travel_1'),
                 borderDecoration: _buildBorderDecoration(
@@ -204,6 +196,7 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
                     text: 'Get a loan',
                     imageName: 'travel_1',
                     addBottomBar: false,
+                    controller: controller,
                   ),
                   _createDummyPage(
                     text: 'Select a place where you want to go',
@@ -232,6 +225,7 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
                 segmentDuration: const Duration(seconds: 5),
               ),
               StoryButtonData(
+                // markAsWatchedOnCreate: true,
                 timelineBackgroundColor: Colors.red,
                 buttonDecoration: _buildButtonDecoration('car'),
                 child: _buildButtonChild('Want a new car?'),
@@ -289,6 +283,7 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
                   ),
                 ],
                 segmentDuration: const Duration(seconds: 5),
+                storyWatchedContract: StoryWatchedContract.onStoryEnd,
               ),
             ],
           ),

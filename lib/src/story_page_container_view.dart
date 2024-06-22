@@ -153,52 +153,106 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
   }
 
   Widget _buildPageStructure() {
-    return Listener(
-      onPointerDown: (PointerDownEvent event) {
-        _pointerDownMillis = _stopwatch.elapsedMilliseconds;
-        _pointerDownPosition = event.position;
-        _storyController.pause();
-      },
-      onPointerUp: (PointerUpEvent event) {
-        final pointerUpMillis = _stopwatch.elapsedMilliseconds;
-        final maxPressMillis = kPressTimeout.inMilliseconds * 2;
-        final diffMillis = pointerUpMillis - _pointerDownMillis;
-        if (diffMillis <= maxPressMillis) {
-          final position = event.position;
-          final distance = (position - _pointerDownPosition).distance;
-          if (distance < 5.0) {
-            final isLeft = _isLeftPartOfStory(position);
-            if (isLeft) {
-              _storyController.previousSegment();
-            } else {
-              _storyController.nextSegment();
+  return Stack(
+    children: [
+      GestureDetector(
+  onVerticalDragEnd: (details) {
+    final primaryVelocity = details.primaryVelocity ?? 0;
+    if (primaryVelocity < 0) {
+      // Swiped up
+      widget.buttonData.focusNode?.requestFocus();
+      _storyController.pause();
+      
+      // Check if keyboard is open and close it
+      if (isKeyboardOpen()) {
+        FocusManager.instance.primaryFocus?.unfocus();
+      }
+    } else if (primaryVelocity > 0) {
+      // Swiped down
+      if (isKeyboardOpen()) {
+        FocusManager.instance.primaryFocus?.unfocus();
+        
+      }else{
+         // Close the story
+      widget.onClosePressed?.call();
+      }
+      
+     
+    }
+  },
+        onTap: () {
+         
+          widget.buttonData.focusNode!.unfocus();
+          _focusNode.unfocus();
+          _storyController.unpause();
+        },
+        onLongPressStart: (details) {
+          _storyController.pause();
+        },
+        onLongPressEnd: (details) {
+          _storyController.unpause();
+        },
+        child: Listener(
+          onPointerDown: (PointerDownEvent event) {
+            _pointerDownMillis = _stopwatch.elapsedMilliseconds;
+            _pointerDownPosition = event.position;
+            if (_isInteracting) {
+              _storyController.unpause();
+              _isInteracting = false;
+              
+              widget.buttonData.focusNode?.unfocus();
+              _focusNode.unfocus();
             }
-          }
-        }
-        _storyController.unpause();
-      },
-      child: SizedBox(
-        width: double.infinity,
-        height: double.infinity,
-        child: Stack(
+          },
+          onPointerUp: (PointerUpEvent event) {
+            final pointerUpMillis = _stopwatch.elapsedMilliseconds;
+            final maxPressMillis = 200;
+            final diffMillis = pointerUpMillis - _pointerDownMillis;
+            if (diffMillis <= maxPressMillis) {
+              final position = event.position;
+              final distance = (position - _pointerDownPosition).distance;
+              if (distance < 5.0 && !_isInteracting) {
+                final isLeft = _isLeftPartOfStory(position);
+                _focusNode.unfocus();
+                if (isLeft) {
+                  _storyController.previousSegment();
+                } else {
+                  _storyController.nextSegment();
+                }
+              }
+            }
+            if (_isInteracting) {
+              _storyController.unpause();
+              _isInteracting = false;
+              widget.buttonData.focusNode!.unfocus();
+              _focusNode.unfocus();
+            }
+          },
+          child: SizedBox(
+            width: double.infinity,
+            height: double.infinity,
+            child: _buildPageContent(),
+          ),
+        ),
+      ),
+      SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _buildPageContent(),
-            SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildTimeline(),
-                  _buildCloseButton(),
-                ],
-              ),
-            ),
+            _buildTimeline(),
+            _buildCloseButton(),
           ],
         ),
       ),
-    );
-  }
-
-  @override
+      Positioned(
+        bottom: 0,
+        right: 0,
+        left: 0,
+        child: _buildInteractiveWidget())
+    ],
+  );
+}
+    @override
   void dispose() {
     widget.pageController?.removeListener(_onPageControllerUpdate);
     _stopwatch.stop();
@@ -224,7 +278,9 @@ typedef StoryTimelineCallback = Function(StoryTimelineEvent);
 
 class StoryTimelineController {
   _StoryTimelineState? _state;
-
+ bool _isStoryWatched = false;
+  bool _areAllSegmentsWatched = false;
+  int _curSegmentIndex = 0;
   final HashSet<StoryTimelineCallback> _listeners =
       HashSet<StoryTimelineCallback>();
 
@@ -238,11 +294,12 @@ class StoryTimelineController {
 
   void _onStoryComplete() {
     _notifyListeners(StoryTimelineEvent.storyComplete);
+    
   }
 
   void _onSegmentComplete() {
     _notifyListeners(StoryTimelineEvent.segmentComplete);
-  }
+    _areAllSegmentsWatched=true;  }
 
   void _notifyListeners(StoryTimelineEvent event) {
     for (var e in _listeners) {
@@ -273,7 +330,17 @@ class StoryTimelineController {
   void dispose() {
     _listeners.clear();
   }
-}
+   bool get isWatched {
+    return _isStoryWatched;
+  }
+
+  bool get allSegmentsWatched {
+    return _areAllSegmentsWatched;
+  }
+  int get currentSegmentIndex {
+    print(_state?.curSegmentIndex);
+    return _state?.curSegmentIndex??0;
+}}
 
 class StoryTimeline extends StatefulWidget {
   final StoryTimelineController controller;
@@ -328,7 +395,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
           _onStoryComplete();
         } else {
           _accumulatedTime = 0;
-          _curSegmentIndex++;
+          curSegmentIndex++;
           _onSegmentComplete();
         }
       }
@@ -340,6 +407,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
     if (widget.buttonData.storyWatchedContract ==
         StoryWatchedContract.onStoryEnd) {
       widget.buttonData.markAsWatched();
+      widget.buttonData.isStoryWatched = true;
     }
     widget.controller._onStoryComplete();
   }
@@ -348,19 +416,22 @@ class _StoryTimelineState extends State<StoryTimeline> {
     if (widget.buttonData.storyWatchedContract ==
         StoryWatchedContract.onSegmentEnd) {
       widget.buttonData.markAsWatched();
+      widget.buttonData.areAllSegmentsWatched = true;
+    
     }
+    
     widget.controller._onSegmentComplete();
   }
 
   bool get _isLastSegment {
-    return _curSegmentIndex == _numSegments - 1;
+    return curSegmentIndex == _numSegments - 1;
   }
 
   int get _numSegments {
     return widget.buttonData.storyPages.length;
   }
 
-  set _curSegmentIndex(int value) {
+  set curSegmentIndex(int value) {
     if (value >= _numSegments) {
       value = _numSegments - 1;
     } else if (value < 0) {
@@ -369,7 +440,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
     widget.buttonData.currentSegmentIndex = value;
   }
 
-  int get _curSegmentIndex {
+  int get curSegmentIndex {
     return widget.buttonData.currentSegmentIndex;
   }
 
@@ -379,7 +450,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
       widget.controller._onStoryComplete();
     } else {
       _accumulatedTime = 0;
-      _curSegmentIndex++;
+      curSegmentIndex++;
       _onSegmentComplete();
     }
   }
@@ -389,7 +460,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
       _accumulatedTime = 0;
     } else {
       _accumulatedTime = 0;
-      _curSegmentIndex--;
+      curSegmentIndex--;
       _onSegmentComplete();
     }
   }
@@ -417,7 +488,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
         painter: _TimelinePainter(
           fillColor: widget.buttonData.timelineFillColor,
           backgroundColor: widget.buttonData.timelineBackgroundColor,
-          curSegmentIndex: _curSegmentIndex,
+          curSegmentIndex: curSegmentIndex,
           numSegments: _numSegments,
           percent: _accumulatedTime / _maxAccumulator,
           spacing: widget.buttonData.timelineSpacing,
