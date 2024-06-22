@@ -167,6 +167,7 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
 
 
 
+
   Widget _buildInteractiveWidget() {
     final interactiveWidget = widget.buttonData.interactiveWidgets?[_curSegmentIndex];
     if (interactiveWidget != null) {
@@ -212,6 +213,7 @@ bool isKeyboardOpen() {
   return WidgetsBinding.instance.window.viewInsets.bottom > 0.0;
 }
 
+
   Widget _buildPageStructure() {
   return Stack(
     children: [
@@ -241,7 +243,7 @@ bool isKeyboardOpen() {
     }
   },
         onTap: () {
-          // _textFieldFocusNodes[_curSegmentIndex].unfocus(); 
+
           widget.buttonData.focusNode!.unfocus();
           _focusNode.unfocus();
           _storyController.unpause();
@@ -259,7 +261,7 @@ bool isKeyboardOpen() {
             if (_isInteracting) {
               _storyController.unpause();
               _isInteracting = false;
-              // _textFieldFocusNodes[_curSegmentIndex].unfocus(); // Unfocus the text field
+
               widget.buttonData.focusNode?.unfocus();
               _focusNode.unfocus();
             }
@@ -341,7 +343,9 @@ typedef StoryTimelineCallback = Function(StoryTimelineEvent);
 
 class StoryTimelineController {
   _StoryTimelineState? _state;
-
+ bool _isStoryWatched = false;
+  bool _areAllSegmentsWatched = false;
+  int _curSegmentIndex = 0;
   final HashSet<StoryTimelineCallback> _listeners =
       HashSet<StoryTimelineCallback>();
 
@@ -355,11 +359,12 @@ class StoryTimelineController {
 
   void _onStoryComplete() {
     _notifyListeners(StoryTimelineEvent.storyComplete);
+    
   }
 
   void _onSegmentComplete() {
     _notifyListeners(StoryTimelineEvent.segmentComplete);
-  }
+    _areAllSegmentsWatched=true;  }
 
   void _notifyListeners(StoryTimelineEvent event) {
     for (var e in _listeners) {
@@ -390,7 +395,17 @@ class StoryTimelineController {
   void dispose() {
     _listeners.clear();
   }
-}
+   bool get isWatched {
+    return _isStoryWatched;
+  }
+
+  bool get allSegmentsWatched {
+    return _areAllSegmentsWatched;
+  }
+  int get currentSegmentIndex {
+    print(_state?.curSegmentIndex);
+    return _state?.curSegmentIndex??0;
+}}
 
 class StoryTimeline extends StatefulWidget {
   final StoryTimelineController controller;
@@ -445,7 +460,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
           _onStoryComplete();
         } else {
           _accumulatedTime = 0;
-          _curSegmentIndex++;
+          curSegmentIndex++;
           _onSegmentComplete();
         }
       }
@@ -457,6 +472,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
     if (widget.buttonData.storyWatchedContract ==
         StoryWatchedContract.onStoryEnd) {
       widget.buttonData.markAsWatched();
+      widget.buttonData.isStoryWatched = true;
     }
     widget.controller._onStoryComplete();
   }
@@ -465,19 +481,22 @@ class _StoryTimelineState extends State<StoryTimeline> {
     if (widget.buttonData.storyWatchedContract ==
         StoryWatchedContract.onSegmentEnd) {
       widget.buttonData.markAsWatched();
+      widget.buttonData.areAllSegmentsWatched = true;
+    
     }
+    
     widget.controller._onSegmentComplete();
   }
 
   bool get _isLastSegment {
-    return _curSegmentIndex == _numSegments - 1;
+    return curSegmentIndex == _numSegments - 1;
   }
 
   int get _numSegments {
     return widget.buttonData.storyPages.length;
   }
 
-  set _curSegmentIndex(int value) {
+  set curSegmentIndex(int value) {
     if (value >= _numSegments) {
       value = _numSegments - 1;
     } else if (value < 0) {
@@ -486,7 +505,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
     widget.buttonData.currentSegmentIndex = value;
   }
 
-  int get _curSegmentIndex {
+  int get curSegmentIndex {
     return widget.buttonData.currentSegmentIndex;
   }
 
@@ -496,7 +515,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
       widget.controller._onStoryComplete();
     } else {
       _accumulatedTime = 0;
-      _curSegmentIndex++;
+      curSegmentIndex++;
       _onSegmentComplete();
     }
   }
@@ -506,7 +525,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
       _accumulatedTime = 0;
     } else {
       _accumulatedTime = 0;
-      _curSegmentIndex--;
+      curSegmentIndex--;
       _onSegmentComplete();
     }
   }
@@ -534,7 +553,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
         painter: _TimelinePainter(
           fillColor: widget.buttonData.timelineFillColor,
           backgroundColor: widget.buttonData.timelineBackgroundColor,
-          curSegmentIndex: _curSegmentIndex,
+          curSegmentIndex: curSegmentIndex,
           numSegments: _numSegments,
           percent: _accumulatedTime / _maxAccumulator,
           spacing: widget.buttonData.timelineSpacing,

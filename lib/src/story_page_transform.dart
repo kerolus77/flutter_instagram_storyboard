@@ -16,6 +16,7 @@ abstract class IStoryPageTransform {
     int index,
     int pageIndex,
     double delta,
+    void Function(int) markAsWatched,
   );
 
   ScrollPhysics? get pageScrollPhysics;
@@ -32,6 +33,7 @@ class StoryPageNoTransform implements IStoryPageTransform {
     int index,
     int pageIndex,
     double delta,
+    void Function(int) markAsWatched,
   ) {
     return child;
   }
@@ -59,8 +61,10 @@ class StoryPage3DTransform implements IStoryPageTransform {
     int index,
     int pageIndex,
     double delta,
+    void Function(int) markAsWatched,
   ) {
     if (index == pageIndex) {
+      markAsWatched(index);
       return Transform(
         alignment: Alignment.centerRight,
         transform: Matrix4.identity()

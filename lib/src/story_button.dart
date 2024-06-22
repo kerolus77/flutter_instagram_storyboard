@@ -55,6 +55,10 @@ class _StoryButtonState extends State<StoryButton>
   void _updateDependencies() {
     widget.buttonData._buttonPositionable = this;
     widget.buttonData._iWatchMarkable = this;
+     print('mmmmmmmmmmmm${widget.buttonData.currentIndex}==${widget.buttonData.storyPages.length-1}');
+     if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex==widget.buttonData.storyPages.length-1) {
+      widget.buttonData.markAsWatched();
+    }
   }
 
   Widget _buildChild() {
@@ -108,7 +112,10 @@ class _StoryButtonState extends State<StoryButton>
 
   void _onTap() {
     setState(() {
+      print('xxxxxxxxxxxxxxxxxxxxx${widget.buttonData.currentIndex}==${widget.buttonData.storyPages.length-1}');
+       if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex>=widget.buttonData.storyPages.length-1) {
       widget.buttonData.markAsWatched();
+    }
     });
     widget.onPressed.call(widget.buttonData);
   }
@@ -167,7 +174,12 @@ class _StoryButtonState extends State<StoryButton>
 
   @override
   void markAsWatched() {
-    safeSetState(() {});
+    safeSetState(() {
+        if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex>=widget.buttonData.storyPages.length-2) {
+      widget.buttonData.watchedState?.call();
+    }
+      // 
+    });
   }
 }
 
@@ -191,8 +203,11 @@ class StoryButtonData {
   /// the border will disappear
   bool _isWatched = false;
   void markAsWatched() {
-    _isWatched = true;
+  //  if(currentSegmentIndex>=storyPages.length-2){
+  //   print('${currentSegmentIndex}========${storyPages.length-2}');
+     _isWatched = true;
     _iWatchMarkable?.markAsWatched();
+  //  }
   }
 
   int currentSegmentIndex = 0;
@@ -223,6 +238,10 @@ class StoryButtonData {
   final double timelineSpacing;
   final EdgeInsets? timlinePadding;
   final IsVisibleCallback isVisibleCallback;
+  final Function()? watchedState;
+  final bool markAsWatchedOnCreate;
+  bool isStoryWatched = false;
+  bool areAllSegmentsWatched = false;
 
   /// Usualy this is required for the final story
   /// to pop it out to its button mosition
@@ -237,6 +256,9 @@ class StoryButtonData {
   Offset? get buttonRightPosition {
     return _buttonPositionable?.rightPosition;
   }
+ int get currentIndex {
+  return currentSegmentIndex;
+}
 
   /// [storyWatchedContract] When you want the story to be marked as
   /// watch [StoryWatchedContract.onStoryEnd] means it will be marked only
@@ -265,10 +287,14 @@ class StoryButtonData {
     this.timelineBackgroundColor = const Color.fromARGB(255, 200, 200, 200),
     this.closeButton,
     this.interactiveWidgets,
+
+    this.watchedState,
+
     this.focusNode,
     required this.storyPages,
     required this.child,
     required this.segmentDuration,
+    this.markAsWatchedOnCreate = false,
     this.containerBackgroundDecoration = const BoxDecoration(
       color: Color.fromARGB(255, 0, 0, 0),
     ),
@@ -294,7 +320,12 @@ class StoryButtonData {
           segmentDuration.inMilliseconds % kStoryTimerTickMillis == 0 &&
               segmentDuration.inMilliseconds >= 1000,
           'Segment duration in milliseconds must be a multiple of $kStoryTimerTickMillis and not less than 1000 milliseconds',
-        );
+        ){
+            if (markAsWatchedOnCreate) {
+      markAsWatched();
+    }
+        }
+        
 }
 
 abstract class IWatchMarkable {
