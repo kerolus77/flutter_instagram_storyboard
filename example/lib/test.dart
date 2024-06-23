@@ -50,7 +50,7 @@ class _InterActiveWidgetState extends State<InterActiveWidget> {
             onPressed: () {
               setState(() {
                 widget.color = !widget.color;
-                print(controller.text);
+                // print(controller.text);
               });
             },
             icon: Icon(Icons.heart_broken),

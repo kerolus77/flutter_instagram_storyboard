@@ -96,7 +96,6 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
       ),
     );
   }
-final StoryTimelineController controller=StoryTimelineController();
 
   Widget _buildButtonChild(String text) {
     return Padding(
@@ -150,10 +149,13 @@ final StoryTimelineController controller=StoryTimelineController();
     );
   }
 final List<bool> isLike=[false,false,false];
+final List<bool> isLike2=[false,false];
  final FocusNode focusNode=FocusNode();
   @override
   Widget build(BuildContext context) {
-    print('cxxxxxxxxxxxxx${controller.currentSegmentIndex==2}' );
+    final StoryTimelineController controller=StoryTimelineController();
+final StoryTimelineController controller2=StoryTimelineController();
+    // print('cxxxxxxxxxxxxx${controller.currentSegmentIndex==2}' );
     return Scaffold(
       appBar: AppBar(
         elevation: 0.0,
@@ -166,6 +168,14 @@ final List<bool> isLike=[false,false,false];
             pageTransform: const StoryPage3DTransform(),
             buttonDatas: [
               StoryButtonData(
+                  markAsWatchedOnCreate: isAllWatched(isLike2),
+                focusNode:focusNode,
+                watchedState: (){
+                  
+                // print(controller2.currentSegmentIndex);
+                isLike2[controller2.currentSegmentIndex]=true;
+                },
+                 storyController: controller2,
                 timelineBackgroundColor: Colors.red,
                 buttonDecoration: _buildButtonDecoration('car'),
                 child: _buildButtonChild('Want a new car?'),
@@ -188,8 +198,8 @@ final List<bool> isLike=[false,false,false];
                markAsWatchedOnCreate: isAllWatched(isLike),
                 focusNode:focusNode,
                 watchedState: (){
-                  print('watched');
-                print(controller.currentSegmentIndex);
+                  // print('watched');
+                // print(controller.currentSegmentIndex);
                 isLike[controller.currentSegmentIndex]=true;
                 },
                  storyController: controller,

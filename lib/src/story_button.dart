@@ -55,7 +55,7 @@ class _StoryButtonState extends State<StoryButton>
   void _updateDependencies() {
     widget.buttonData._buttonPositionable = this;
     widget.buttonData._iWatchMarkable = this;
-     print('mmmmmmmmmmmm${widget.buttonData.currentIndex}==${widget.buttonData.storyPages.length-1}');
+     
      if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex==widget.buttonData.storyPages.length-1) {
       widget.buttonData.markAsWatched();
     }
@@ -112,7 +112,7 @@ class _StoryButtonState extends State<StoryButton>
 
   void _onTap() {
     setState(() {
-      print('xxxxxxxxxxxxxxxxxxxxx${widget.buttonData.currentIndex}==${widget.buttonData.storyPages.length-1}');
+    
        if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex>=widget.buttonData.storyPages.length-1) {
       widget.buttonData.markAsWatched();
     }
@@ -128,7 +128,17 @@ class _StoryButtonState extends State<StoryButton>
           aspectRatio: widget.buttonData.aspectRatio,
           child: Container(
             decoration: widget.buttonData._isWatched
-                ? null
+                ? BoxDecoration(
+      borderRadius: const BorderRadius.all(
+        Radius.circular(100),
+      ),
+      border: Border.fromBorderSide(
+        BorderSide(
+          color: Colors .grey,
+          width: 1.5,
+        ),
+      ),
+    )
                 : widget.buttonData.borderDecoration,
             child: Padding(
               padding: EdgeInsets.all(
