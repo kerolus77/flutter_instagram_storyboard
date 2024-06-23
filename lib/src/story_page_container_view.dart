@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_instagram_storyboard/flutter_instagram_storyboard.dart';
 import 'package:flutter_instagram_storyboard/src/first_build_mixin.dart';
 
-
 import 'textfield_finder.dart';
 
 
@@ -493,6 +492,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
       value = 0;
     }
     widget.buttonData.currentSegmentIndex = value;
+   if(widget.buttonData.watchedState!=null) {widget.buttonData.watchedState!();}
   }
 
   int get _curSegmentIndex {

@@ -187,6 +187,10 @@ final List<bool> isLike=[false,true,false];
               StoryButtonData(
                markAsWatchedOnCreate: controller.currentSegmentIndex==2?true:false,
                 focusNode:focusNode,
+                watchedState: (){
+                  print('watched');
+                print(controller.currentSegmentIndex);
+                },
                  storyController: controller,
                 interactiveWidgets: List.generate(3, (index) => InterActiveWidget(color: isLike[index], focusNode: focusNode,)),
                 timelineBackgroundColor: Colors.blue,
