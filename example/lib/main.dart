@@ -149,7 +149,7 @@ final StoryTimelineController controller=StoryTimelineController();
       ),
     );
   }
-final List<bool> isLike=[false,true,false];
+final List<bool> isLike=[false,false,false];
  final FocusNode focusNode=FocusNode();
   @override
   Widget build(BuildContext context) {
@@ -185,11 +185,12 @@ final List<bool> isLike=[false,true,false];
                 segmentDuration: const Duration(seconds: 3),
               ),
               StoryButtonData(
-               markAsWatchedOnCreate: controller.currentSegmentIndex==2?true:false,
+               markAsWatchedOnCreate: isAllWatched(isLike),
                 focusNode:focusNode,
                 watchedState: (){
                   print('watched');
                 print(controller.currentSegmentIndex);
+                isLike[controller.currentSegmentIndex]=true;
                 },
                  storyController: controller,
                 interactiveWidgets: List.generate(3, (index) => InterActiveWidget(color: isLike[index], focusNode: focusNode,)),
@@ -297,5 +298,14 @@ final List<bool> isLike=[false,true,false];
         ],
       ),
     );
+  }
+  
+  isAllWatched(List<bool> isLike) {
+    for (var i = 0; i < isLike.length; i++) {
+      if (!isLike[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 }

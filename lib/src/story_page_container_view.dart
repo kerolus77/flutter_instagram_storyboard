@@ -486,13 +486,14 @@ class _StoryTimelineState extends State<StoryTimeline> {
   }
 
   set _curSegmentIndex(int value) {
+    if(widget.buttonData.watchedState!=null) {widget.buttonData.watchedState!();}
     if (value >= _numSegments) {
       value = _numSegments - 1;
     } else if (value < 0) {
       value = 0;
     }
     widget.buttonData.currentSegmentIndex = value;
-   if(widget.buttonData.watchedState!=null) {widget.buttonData.watchedState!();}
+   
   }
 
   int get _curSegmentIndex {
