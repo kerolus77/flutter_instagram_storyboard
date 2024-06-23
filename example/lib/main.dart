@@ -153,7 +153,7 @@ final List<bool> isLike=[false,true,false];
  final FocusNode focusNode=FocusNode();
   @override
   Widget build(BuildContext context) {
-    print('cxxxxxxxxxxxxx${controller.currentSegmentIndex==2}');
+    print('cxxxxxxxxxxxxx${controller.currentSegmentIndex==2}' );
     return Scaffold(
       appBar: AppBar(
         elevation: 0.0,
