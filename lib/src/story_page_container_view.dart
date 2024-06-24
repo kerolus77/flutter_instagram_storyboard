@@ -423,7 +423,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
 
   @override
   void initState() {
-    _maxAccumulator = widget.buttonData.segmentDuration.inMilliseconds;
+    _setMaxAccumulator();
     _timer = Timer.periodic(
       const Duration(
         milliseconds: kStoryTimerTickMillis,
@@ -437,6 +437,16 @@ class _StoryTimelineState extends State<StoryTimeline> {
       widget.buttonData.markAsWatched();
     }
   }
+
+ void _setMaxAccumulator() {
+  if (widget.buttonData.segmentDurations.isNotEmpty && widget.buttonData.currentSegmentIndex < widget.buttonData.segmentDurations.length) {
+    _maxAccumulator = widget.buttonData.segmentDurations[widget.buttonData.currentSegmentIndex].inMilliseconds;
+  } else {
+    _maxAccumulator = 5 ; // Default to 0 to handle edge cases
+  }
+
+  // print('widget.buttonData.currentSegmentIndex ${widget.buttonData.currentSegmentIndex }');
+}
 
   void _setTimelineAvailable(bool value) {
     _isTimelineAvailable = value;
@@ -454,6 +464,8 @@ class _StoryTimelineState extends State<StoryTimeline> {
         } else {
           _accumulatedTime = 0;
           _curSegmentIndex++;
+          _setMaxAccumulator();
+
           _onSegmentComplete();
         }
       }
@@ -493,20 +505,28 @@ class _StoryTimelineState extends State<StoryTimeline> {
       value = 0;
     }
     widget.buttonData.currentSegmentIndex = value;
-   
+   _setMaxAccumulator();
   }
 
-  int get _curSegmentIndex {
-    return widget.buttonData.currentSegmentIndex;
+int get _curSegmentIndex {
+  int index = widget.buttonData.currentSegmentIndex;
+  if (index >= _numSegments) {
+    index = _numSegments - 1;
+  } else if (index < 0) {
+    index = 0;
   }
+  return index;
+}
 
   void nextSegment() {
+     
     if (_isLastSegment) {
       _accumulatedTime = _maxAccumulator;
       widget.controller._onStoryComplete();
     } else {
       _accumulatedTime = 0;
       _curSegmentIndex++;
+      _setMaxAccumulator();
       _onSegmentComplete();
     }
   }
@@ -517,6 +537,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
     } else {
       _accumulatedTime = 0;
       _curSegmentIndex--;
+      _setMaxAccumulator();
       _onSegmentComplete();
     }
   }
@@ -619,18 +640,23 @@ class _TimelinePainter extends CustomPainter {
       } else if (curSegmentIndex == i) {
         endValue = start.dx + (maxSegmentLength * percent);
       }
+
+      // Ensure endValue is a valid number
+      if (endValue.isNaN) {
+        endValue = start.dx;
+      }
+
       final end = Offset(
         endValue,
         0.0,
       );
-      if (endValue == start.dx) {
-        continue;
+      if (endValue != start.dx) {
+        canvas.drawLine(
+          start,
+          end,
+          fillPaint,
+        );
       }
-      canvas.drawLine(
-        start,
-        end,
-        fillPaint,
-      );
     }
   }
 

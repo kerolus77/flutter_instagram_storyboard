@@ -192,7 +192,7 @@ final StoryTimelineController controller2=StoryTimelineController();
                     imageName: 'car',
                   ),
                 ],
-                segmentDuration: const Duration(seconds: 3),
+                segmentDurations: [const Duration(seconds: 3)],
               ),
               StoryButtonData(
                markAsWatchedOnCreate: isAllWatched(isLike),
@@ -227,7 +227,7 @@ final StoryTimelineController controller2=StoryTimelineController();
                     addBottomBar: false,
                   ),
                 ],
-                segmentDuration: const Duration(seconds: 3),
+                segmentDurations: [const Duration(seconds: 3),const Duration(seconds: 10),const Duration(seconds: 30),]
               ),
               StoryButtonData(
                 timelineBackgroundColor: Colors.orange,
@@ -240,7 +240,7 @@ final StoryTimelineController controller2=StoryTimelineController();
                     imageName: 'house',
                   ),
                 ],
-                segmentDuration: const Duration(seconds: 5),
+                segmentDurations: const[ Duration(seconds: 5)],
               ),
               StoryButtonData(
                 // markAsWatchedOnCreate: true,
@@ -260,7 +260,7 @@ final StoryTimelineController controller2=StoryTimelineController();
                     imageName: 'car',
                   ),
                 ],
-                segmentDuration: const Duration(seconds: 3),
+                segmentDurations: [const Duration(seconds: 3),const Duration(seconds: 10),const Duration(seconds:30)],
               ),
               StoryButtonData(
                 buttonDecoration: _buildButtonDecoration('travel_1'),
@@ -284,7 +284,7 @@ final StoryTimelineController controller2=StoryTimelineController();
                     addBottomBar: false,
                   ),
                 ],
-                segmentDuration: const Duration(seconds: 3),
+                segmentDurations: [const Duration(seconds: 3)],
               ),
               StoryButtonData(
                 isVisibleCallback: () {
@@ -300,7 +300,7 @@ final StoryTimelineController controller2=StoryTimelineController();
                     imageName: 'house',
                   ),
                 ],
-                segmentDuration: const Duration(seconds: 5),
+                segmentDurations: const [Duration(seconds: 5)],
                 storyWatchedContract: StoryWatchedContract.onStoryEnd,
               ),
             ],

@@ -241,7 +241,7 @@ class StoryButtonData {
   final FocusNode? focusNode;
 
   final Widget? closeButton;
-  final Duration segmentDuration;
+  final List <Duration> segmentDurations;
   final BoxDecoration containerBackgroundDecoration;
   final Color timelineFillColor;
   final Color timelineBackgroundColor;
@@ -305,7 +305,7 @@ class StoryButtonData {
     this.focusNode,
     required this.storyPages,
     required this.child,
-    required this.segmentDuration,
+    required this.segmentDurations,
     this.markAsWatchedOnCreate = false,
     this.containerBackgroundDecoration = const BoxDecoration(
       color: Color.fromARGB(255, 0, 0, 0),
@@ -329,9 +329,11 @@ class StoryButtonData {
     ),
     this.borderOffset = 2.0,
   }) : assert(
-          segmentDuration.inMilliseconds % kStoryTimerTickMillis == 0 &&
-              segmentDuration.inMilliseconds >= 1000,
-          'Segment duration in milliseconds must be a multiple of $kStoryTimerTickMillis and not less than 1000 milliseconds',
+          segmentDurations.isNotEmpty && 
+          segmentDurations.every((duration) =>
+              duration.inMilliseconds % kStoryTimerTickMillis == 0 &&
+              duration.inMilliseconds >= 1000),
+          'Each segment duration in milliseconds must be a multiple of $kStoryTimerTickMillis and not less than 1000 milliseconds',
         ){
             if (markAsWatchedOnCreate) {
       markAsWatched();
