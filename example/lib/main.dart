@@ -150,6 +150,7 @@ class _StoryExamplePageState extends State<StoryExamplePage> {
   }
 final List<bool> isLike=[false,false,false];
 final List<bool> isLike2=[false,false];
+int i=0;
  final FocusNode focusNode=FocusNode();
   @override
   Widget build(BuildContext context) {
@@ -175,6 +176,7 @@ final StoryTimelineController controller2=StoryTimelineController();
                 // print(controller2.currentSegmentIndex);
                 isLike2[controller2.currentSegmentIndex]=true;
                 },
+                
                  storyController: controller2,
                 timelineBackgroundColor: Colors.red,
                 buttonDecoration: _buildButtonDecoration('car'),
@@ -197,6 +199,12 @@ final StoryTimelineController controller2=StoryTimelineController();
               StoryButtonData(
                markAsWatchedOnCreate: isAllWatched(isLike),
                 focusNode:focusNode,
+                optionButton: List.generate(3, (index) => GestureDetector(
+                  onTap: (){
+                    print('option button${i}');
+                    i++;
+                  },
+                  child: const Icon(Icons.more_vert),),),
                 watchedState: (){
                   // print('watched');
                 // print(controller.currentSegmentIndex);

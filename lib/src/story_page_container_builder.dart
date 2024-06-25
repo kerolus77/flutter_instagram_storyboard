@@ -164,96 +164,99 @@ class _StoryPageContainerBuilderState extends State<StoryPageContainerBuilder>
 
   @override
   Widget build(BuildContext context) {
-    return IgnorePointer(
-      ignoring: _isClosed,
-      child: AnimatedBuilder(
-        animation: widget.animation,
-        builder: (c, w) {
-          final animationValue = Interval(
-            0.0,
-            1.0,
-            curve: widget.settings.curve ?? Curves.linear,
-          ).transform(
-            1.0 - widget.animation.value,
-          );
-
-          double bgOpacity = 1.0 -
-              const Interval(
-                0.0,
-                kMaxPageOverscroll,
-              ).transform(
-                _bgOpacityControlValue,
-              );
-          final itemCount = widget.settings.allButtonDatas.length;
-          if (_isClosed) {
-            bgOpacity = 0.0;
-          }
-
-          return ClipRRect(
-            clipper: _PageClipper(
-              borderRadius:
-                  widget.settings.buttonData.borderDecoration.borderRadius
-                      ?.resolve(
-                        null,
-                      )
-                      .bottomLeft,
-              startX: _activeButtonData.buttonCenterPosition?.dx ??
-                  widget.settings.tapPosition.dx,
-              startY: _activeButtonData.buttonCenterPosition?.dy ??
-                  widget.settings.tapPosition.dy,
-              animationValue: animationValue,
-            ),
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Container(
-                decoration: widget
-                    .settings.buttonData.containerBackgroundDecoration
-                    .copyWith(
-                  color: widget
-                      .settings.buttonData.containerBackgroundDecoration.color
-                      ?.withOpacity(
-                    bgOpacity,
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: IgnorePointer(
+        ignoring: _isClosed,
+        child: AnimatedBuilder(
+          animation: widget.animation,
+          builder: (c, w) {
+            final animationValue = Interval(
+              0.0,
+              1.0,
+              curve: widget.settings.curve ?? Curves.linear,
+            ).transform(
+              1.0 - widget.animation.value,
+            );
+      
+            double bgOpacity = 1.0 -
+                const Interval(
+                  0.0,
+                  kMaxPageOverscroll,
+                ).transform(
+                  _bgOpacityControlValue,
+                );
+            final itemCount = widget.settings.allButtonDatas.length;
+            if (_isClosed) {
+              bgOpacity = 0.0;
+            }
+      
+            return ClipRRect(
+              clipper: _PageClipper(
+                borderRadius:
+                    widget.settings.buttonData.borderDecoration.borderRadius
+                        ?.resolve(
+                          null,
+                        )
+                        .bottomLeft,
+                startX: _activeButtonData.buttonCenterPosition?.dx ??
+                    widget.settings.tapPosition.dx,
+                startY: _activeButtonData.buttonCenterPosition?.dy ??
+                    widget.settings.tapPosition.dy,
+                animationValue: animationValue,
+              ),
+              child: Scaffold(
+                backgroundColor: Colors.transparent,
+                body: Container(
+                  decoration: widget
+                      .settings.buttonData.containerBackgroundDecoration
+                      .copyWith(
+                    color: widget
+                        .settings.buttonData.containerBackgroundDecoration.color
+                        ?.withOpacity(
+                      bgOpacity,
+                    ),
                   ),
-                ),
-                child: SafeArea(
-                  bottom: widget.settings.safeAreaBottom,
-                  top: widget.settings.safeAreaTop,
-                  child: PageView.builder(
-                    physics: _storyPageTransform.pageScrollPhysics,
-                    controller: _pageController,
-                    itemBuilder: ((context, index) {
-                      final childIndex = index % itemCount;
-                      final buttonData =
-                          widget.settings.allButtonDatas[childIndex];
-                      final child = StoryPageContainerView(
-                        buttonData: buttonData,
-                        onClosePressed: _close,
-                        pageController: _pageController,
-                        onStoryComplete: _onStoryComplete,
-                      );
-                      return _storyPageTransform.transform(
-                        context,
-                        child,
-                        childIndex,
-                        _currentPage,
-                        _pageDelta,
-                        (index) {
-                          if(widget.settings.allButtonDatas[childIndex].currentIndex>=widget.settings.allButtonDatas[childIndex].storyPages.length-1||widget.settings.buttonData.markAsWatchedOnCreate){
-                            widget.settings.allButtonDatas[childIndex].markAsWatched();
-
-                          }
-                          // widget.settings.buttonData.markAsWatched();
-
-                        },
-                      );
-                    }),
-                    itemCount: itemCount,
+                  child: SafeArea(
+                    bottom: widget.settings.safeAreaBottom,
+                    top: widget.settings.safeAreaTop,
+                    child: PageView.builder(
+                      physics: _storyPageTransform.pageScrollPhysics,
+                      controller: _pageController,
+                      itemBuilder: ((context, index) {
+                        final childIndex = index % itemCount;
+                        final buttonData =
+                            widget.settings.allButtonDatas[childIndex];
+                        final child = StoryPageContainerView(
+                          buttonData: buttonData,
+                          onClosePressed: _close,
+                          pageController: _pageController,
+                          onStoryComplete: _onStoryComplete,
+                        );
+                        return _storyPageTransform.transform(
+                          context,
+                          child,
+                          childIndex,
+                          _currentPage,
+                          _pageDelta,
+                          (index) {
+                            if(widget.settings.allButtonDatas[childIndex].currentIndex>=widget.settings.allButtonDatas[childIndex].storyPages.length-1||widget.settings.buttonData.markAsWatchedOnCreate){
+                              widget.settings.allButtonDatas[childIndex].markAsWatched();
+      
+                            }
+                            // widget.settings.buttonData.markAsWatched();
+      
+                          },
+                        );
+                      }),
+                      itemCount: itemCount,
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
