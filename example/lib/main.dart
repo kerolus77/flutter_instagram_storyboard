@@ -199,12 +199,21 @@ final StoryTimelineController controller2=StoryTimelineController();
               StoryButtonData(
                markAsWatchedOnCreate: isAllWatched(isLike),
                 focusNode:focusNode,
-                optionButton: List.generate(3, (index) => GestureDetector(
-                  onTap: (){
-                    print('option button${i}');
-                    i++;
-                  },
-                  child: const Icon(Icons.more_vert),),),
+                optionButton: List.generate(3, (index) => Row(
+                  children: [
+
+                    CircleAvatar(
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.favorite,color: isLike[index]?Colors.red:Colors.black,)),
+                    Spacer(),
+                    GestureDetector(
+                      onTap: (){
+                        print('option button${i}');
+                        i++;
+                      },
+                      child: const Icon(Icons.more_vert),),
+                  ],
+                ),),
                 watchedState: (){
                   // print('watched');
                 // print(controller.currentSegmentIndex);

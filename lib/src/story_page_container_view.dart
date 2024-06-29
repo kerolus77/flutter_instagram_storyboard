@@ -112,14 +112,10 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
         vertical: 10.0,
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          const Expanded(child: SizedBox()),
-          widget.buttonData.optionButton!=null?Flexible(child:
-          widget.buttonData.optionButton!.length > _curSegmentIndex
-        ? widget.buttonData.optionButton![_curSegmentIndex]
-        : widget.buttonData.optionButton![0],
-           ):SizedBox.shrink(),
+          
           closeButton,
         ],
       ),
@@ -313,14 +309,17 @@ bool isKeyboardOpen() {
             Row(
               
               
-              mainAxisSize: MainAxisSize.min,
+              // mainAxisSize: MainAxisSize.min,
               children: [
                 
-               
+                // const Expanded(child: SizedBox()),
+          widget.buttonData.optionButton!=null?Flexible(child:
+          widget.buttonData.optionButton!.length > _curSegmentIndex
+        ? widget.buttonData.optionButton![_curSegmentIndex]
+        : widget.buttonData.optionButton![0],
+           ):SizedBox.shrink(),
               
-              Flexible(
-                  child: _buildCloseButton(),
-                ),
+              _buildCloseButton(),
               
                 ],
             ),
