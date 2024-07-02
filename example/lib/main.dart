@@ -247,8 +247,9 @@ final StoryTimelineController controller2=StoryTimelineController();
                 segmentDurations: [const Duration(seconds: 3),const Duration(seconds: 10),const Duration(seconds: 30),]
               ),
               StoryButtonData(
+                markAsWatchedOnCreate: false,
                 timelineBackgroundColor: Colors.orange,
-                borderDecoration: _buildBorderDecoration(Colors.orange),
+                borderDecoration: _buildBorderDecoration( Colors.red),
                 buttonDecoration: _buildButtonDecoration('house'),
                 child: _buildButtonChild('Buy a house anywhere'),
                 storyPages: [

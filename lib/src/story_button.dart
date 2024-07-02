@@ -55,8 +55,10 @@ class _StoryButtonState extends State<StoryButton>
   void _updateDependencies() {
     widget.buttonData._buttonPositionable = this;
     widget.buttonData._iWatchMarkable = this;
-     
-     if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex==widget.buttonData.storyPages.length-1) {
+      if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex>=widget.buttonData.storyPages.length-2) {
+      widget.buttonData.watchedState?.call();
+    }
+     else if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex==widget.buttonData.storyPages.length-1) {
       widget.buttonData.markAsWatched();
     }
   }
@@ -185,7 +187,15 @@ class _StoryButtonState extends State<StoryButton>
   @override
   void markAsWatched() {
     safeSetState(() {
-        if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex>=widget.buttonData.storyPages.length-2) {
+    print(widget.buttonData.storyPages.length);
+    print(widget.buttonData.currentIndex);
+      if(widget.buttonData.storyPages.length<=1){
+        print("ffffffffff${widget.buttonData.storyPages.length}");
+         if (widget.buttonData.markAsWatchedOnCreate&&widget.buttonData.currentIndex==widget.buttonData.storyPages.length) {
+      widget.buttonData.watchedState?.call();
+    }
+      }
+      else  if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex>=widget.buttonData.storyPages.length-2) {
       widget.buttonData.watchedState?.call();
     }
       // 
