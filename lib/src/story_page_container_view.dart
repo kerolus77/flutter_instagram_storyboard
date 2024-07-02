@@ -308,7 +308,7 @@ bool isKeyboardOpen() {
             _buildTimeline(),
             Row(
               
-              crossAxisAlignment: CrossAxisAlignment.end,
+              // crossAxisAlignment: CrossAxisAlignment.end,
               // mainAxisSize: MainAxisSize.min,
               children: [
                 
