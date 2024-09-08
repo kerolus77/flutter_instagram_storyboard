@@ -338,7 +338,7 @@ class StoryButtonData {
         ),
       ),
     ),
-    this.borderOffset = 2.0,
+    this.borderOffset = 1.0,
   }) : assert(
           segmentDurations.isNotEmpty && 
           segmentDurations.every((duration) =>
