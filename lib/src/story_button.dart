@@ -134,17 +134,18 @@ class _StoryButtonState extends State<StoryButton>
           aspectRatio: widget.buttonData.aspectRatio,
           child: Container(
             decoration: widget.buttonData._isWatched
-                ? BoxDecoration(
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(100),
-                    ),
-                    border: Border.fromBorderSide(
-                      BorderSide(
-                        color: Colors.grey,
-                        width: 1.5,
+                ? widget.buttonData.watchedBorderDecoration ??
+                    BoxDecoration(
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(100),
                       ),
-                    ),
-                  )
+                      border: Border.fromBorderSide(
+                        BorderSide(
+                          color: Colors.grey,
+                          width: 1.5,
+                        ),
+                      ),
+                    )
                 : widget.buttonData.borderDecoration,
             child: Padding(
               padding: EdgeInsets.all(
@@ -191,10 +192,7 @@ class _StoryButtonState extends State<StoryButton>
   @override
   void markAsWatched() {
     safeSetState(() {
-      print(widget.buttonData.storyPages.length);
-      print(widget.buttonData.currentIndex);
       if (widget.buttonData.storyPages.length <= 1) {
-        print("ffffffffff${widget.buttonData.storyPages.length}");
         if (widget.buttonData.markAsWatchedOnCreate &&
             widget.buttonData.currentIndex ==
                 widget.buttonData.storyPages.length) {
@@ -249,6 +247,9 @@ class StoryButtonData {
   final double aspectRatio;
   final BoxDecoration buttonDecoration;
   final BoxDecoration borderDecoration;
+
+  /// Border drawn once the story is watched; a grey outline when null.
+  final BoxDecoration? watchedBorderDecoration;
   final double borderOffset;
   final InteractiveInkFeatureFactory? inkFeatureFactory;
   final Widget child;
@@ -366,6 +367,7 @@ class StoryButtonData {
       ),
     ),
     this.borderOffset = 1.0,
+    this.watchedBorderDecoration,
   })  : segmentDurations = List<Duration>.of(segmentDurations),
         assert(
           segmentDurations.isNotEmpty &&
