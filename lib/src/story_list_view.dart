@@ -56,6 +56,8 @@ class _StoryListViewState extends State<StoryListView> {
           allButtonDatas: widget.buttonDatas,
           pageTransform: widget.pageTransform,
           storyListScrollController: _scrollController,
+          safeAreaTop: widget.safeAreaTop,
+          safeAreaBottom: widget.safeAreaBottom,
         ),
         duration: buttonData.pageAnimationDuration,
       ),
