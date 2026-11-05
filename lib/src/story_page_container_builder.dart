@@ -164,6 +164,7 @@ class _StoryPageContainerBuilderState extends State<StoryPageContainerBuilder>
 
   @override
   Widget build(BuildContext context) {
+    final appTextDirection = Directionality.of(context);
     return Directionality(
       textDirection: TextDirection.ltr,
       child: IgnorePointer(
@@ -178,7 +179,7 @@ class _StoryPageContainerBuilderState extends State<StoryPageContainerBuilder>
             ).transform(
               1.0 - widget.animation.value,
             );
-      
+
             double bgOpacity = 1.0 -
                 const Interval(
                   0.0,
@@ -190,7 +191,7 @@ class _StoryPageContainerBuilderState extends State<StoryPageContainerBuilder>
             if (_isClosed) {
               bgOpacity = 0.0;
             }
-      
+
             return ClipRRect(
               clipper: _PageClipper(
                 borderRadius:
@@ -227,11 +228,15 @@ class _StoryPageContainerBuilderState extends State<StoryPageContainerBuilder>
                         final childIndex = index % itemCount;
                         final buttonData =
                             widget.settings.allButtonDatas[childIndex];
-                        final child = StoryPageContainerView(
-                          buttonData: buttonData,
-                          onClosePressed: _close,
-                          pageController: _pageController,
-                          onStoryComplete: _onStoryComplete,
+                        // Paging stays LTR; the page itself follows the app.
+                        final child = Directionality(
+                          textDirection: appTextDirection,
+                          child: StoryPageContainerView(
+                            buttonData: buttonData,
+                            onClosePressed: _close,
+                            pageController: _pageController,
+                            onStoryComplete: _onStoryComplete,
+                          ),
                         );
                         return _storyPageTransform.transform(
                           context,
@@ -240,12 +245,17 @@ class _StoryPageContainerBuilderState extends State<StoryPageContainerBuilder>
                           _currentPage,
                           _pageDelta,
                           (index) {
-                            if(widget.settings.allButtonDatas[childIndex].currentIndex>=widget.settings.allButtonDatas[childIndex].storyPages.length-1||widget.settings.buttonData.markAsWatchedOnCreate){
-                              widget.settings.allButtonDatas[childIndex].markAsWatched();
-      
+                            if (widget.settings.allButtonDatas[childIndex]
+                                        .currentIndex >=
+                                    widget.settings.allButtonDatas[childIndex]
+                                            .storyPages.length -
+                                        1 ||
+                                widget.settings.buttonData
+                                    .markAsWatchedOnCreate) {
+                              widget.settings.allButtonDatas[childIndex]
+                                  .markAsWatched();
                             }
                             // widget.settings.buttonData.markAsWatched();
-      
                           },
                         );
                       }),

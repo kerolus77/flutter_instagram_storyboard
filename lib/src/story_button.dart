@@ -55,10 +55,13 @@ class _StoryButtonState extends State<StoryButton>
   void _updateDependencies() {
     widget.buttonData._buttonPositionable = this;
     widget.buttonData._iWatchMarkable = this;
-      if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex>=widget.buttonData.storyPages.length-2) {
+    if (widget.buttonData.markAsWatchedOnCreate ||
+        widget.buttonData.currentIndex >=
+            widget.buttonData.storyPages.length - 2) {
       widget.buttonData.watchedState?.call();
-    }
-     else if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex==widget.buttonData.storyPages.length-1) {
+    } else if (widget.buttonData.markAsWatchedOnCreate ||
+        widget.buttonData.currentIndex ==
+            widget.buttonData.storyPages.length - 1) {
       widget.buttonData.markAsWatched();
     }
   }
@@ -114,10 +117,11 @@ class _StoryButtonState extends State<StoryButton>
 
   void _onTap() {
     setState(() {
-    
-       if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex>=widget.buttonData.storyPages.length-1) {
-      widget.buttonData.markAsWatched();
-    }
+      if (widget.buttonData.markAsWatchedOnCreate ||
+          widget.buttonData.currentIndex >=
+              widget.buttonData.storyPages.length - 1) {
+        widget.buttonData.markAsWatched();
+      }
     });
     widget.onPressed.call(widget.buttonData);
   }
@@ -131,16 +135,16 @@ class _StoryButtonState extends State<StoryButton>
           child: Container(
             decoration: widget.buttonData._isWatched
                 ? BoxDecoration(
-      borderRadius: const BorderRadius.all(
-        Radius.circular(100),
-      ),
-      border: Border.fromBorderSide(
-        BorderSide(
-          color: Colors .grey,
-          width: 1.5,
-        ),
-      ),
-    )
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(100),
+                    ),
+                    border: Border.fromBorderSide(
+                      BorderSide(
+                        color: Colors.grey,
+                        width: 1.5,
+                      ),
+                    ),
+                  )
                 : widget.buttonData.borderDecoration,
             child: Padding(
               padding: EdgeInsets.all(
@@ -187,18 +191,21 @@ class _StoryButtonState extends State<StoryButton>
   @override
   void markAsWatched() {
     safeSetState(() {
-    print(widget.buttonData.storyPages.length);
-    print(widget.buttonData.currentIndex);
-      if(widget.buttonData.storyPages.length<=1){
+      print(widget.buttonData.storyPages.length);
+      print(widget.buttonData.currentIndex);
+      if (widget.buttonData.storyPages.length <= 1) {
         print("ffffffffff${widget.buttonData.storyPages.length}");
-         if (widget.buttonData.markAsWatchedOnCreate&&widget.buttonData.currentIndex==widget.buttonData.storyPages.length) {
-      widget.buttonData.watchedState?.call();
-    }
+        if (widget.buttonData.markAsWatchedOnCreate &&
+            widget.buttonData.currentIndex ==
+                widget.buttonData.storyPages.length) {
+          widget.buttonData.watchedState?.call();
+        }
+      } else if (widget.buttonData.markAsWatchedOnCreate ||
+          widget.buttonData.currentIndex >=
+              widget.buttonData.storyPages.length - 2) {
+        widget.buttonData.watchedState?.call();
       }
-      else  if (widget.buttonData.markAsWatchedOnCreate||widget.buttonData.currentIndex>=widget.buttonData.storyPages.length-2) {
-      widget.buttonData.watchedState?.call();
-    }
-      // 
+      //
     });
   }
 }
@@ -223,11 +230,11 @@ class StoryButtonData {
   /// the border will disappear
   bool _isWatched = false;
   void markAsWatched() {
-  //  if(currentSegmentIndex>=storyPages.length-2){
-  //   print('${currentSegmentIndex}========${storyPages.length-2}');
-     _isWatched = true;
+    //  if(currentSegmentIndex>=storyPages.length-2){
+    //   print('${currentSegmentIndex}========${storyPages.length-2}');
+    _isWatched = true;
     _iWatchMarkable?.markAsWatched();
-  //  }
+    //  }
   }
 
   int currentSegmentIndex = 0;
@@ -252,7 +259,18 @@ class StoryButtonData {
 
   final Widget? closeButton;
   final List<Widget>? optionButton;
-  final List <Duration> segmentDurations;
+
+  /// A mutable copy of the durations passed to the constructor.
+  /// Use [setSegmentDuration] to change one after creation.
+  final List<Duration> segmentDurations;
+
+  /// While this returns false for the current segment the timeline
+  /// does not advance, e.g. until a video segment has buffered.
+  final bool Function(int segmentIndex)? isSegmentReady;
+
+  /// Called with the current segment index when the story timeline
+  /// starts and whenever the current segment changes.
+  final ValueChanged<int>? onSegmentChanged;
   final BoxDecoration containerBackgroundDecoration;
   final Color timelineFillColor;
   final Color timelineBackgroundColor;
@@ -279,9 +297,17 @@ class StoryButtonData {
   Offset? get buttonRightPosition {
     return _buttonPositionable?.rightPosition;
   }
- int get currentIndex {
-  return currentSegmentIndex;
-}
+
+  int get currentIndex {
+    return currentSegmentIndex;
+  }
+
+  /// Changes the duration of the segment at [index], e.g. once a video's
+  /// real length is known. The running timeline picks it up on its next tick.
+  void setSegmentDuration(int index, Duration duration) {
+    assert(duration > Duration.zero, 'Segment duration must be positive');
+    segmentDurations[index] = duration;
+  }
 
   /// [storyWatchedContract] When you want the story to be marked as
   /// watch [StoryWatchedContract.onStoryEnd] means it will be marked only
@@ -312,11 +338,12 @@ class StoryButtonData {
     this.interactiveWidgets,
     this.optionButton,
     this.watchedState,
-
     this.focusNode,
     required this.storyPages,
     required this.child,
-    required this.segmentDurations,
+    required List<Duration> segmentDurations,
+    this.isSegmentReady,
+    this.onSegmentChanged,
     this.markAsWatchedOnCreate = false,
     this.containerBackgroundDecoration = const BoxDecoration(
       color: Color.fromARGB(255, 0, 0, 0),
@@ -339,18 +366,18 @@ class StoryButtonData {
       ),
     ),
     this.borderOffset = 1.0,
-  }) : assert(
-          segmentDurations.isNotEmpty && 
-          segmentDurations.every((duration) =>
-              duration.inMilliseconds % kStoryTimerTickMillis == 0 &&
-              duration.inMilliseconds >= 1000),
+  })  : segmentDurations = List<Duration>.of(segmentDurations),
+        assert(
+          segmentDurations.isNotEmpty &&
+              segmentDurations.every((duration) =>
+                  duration.inMilliseconds % kStoryTimerTickMillis == 0 &&
+                  duration.inMilliseconds >= 1000),
           'Each segment duration in milliseconds must be a multiple of $kStoryTimerTickMillis and not less than 1000 milliseconds',
-        ){
-            if (markAsWatchedOnCreate) {
+        ) {
+    if (markAsWatchedOnCreate) {
       markAsWatched();
     }
-        }
-        
+  }
 }
 
 abstract class IWatchMarkable {

@@ -1,12 +1,12 @@
- import 'dart:async';
+import 'dart:async';
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_instagram_storyboard/flutter_instagram_storyboard.dart';
 import 'package:flutter_instagram_storyboard/src/first_build_mixin.dart';
 
 import 'textfield_finder.dart';
-
 
 class StoryPageContainerView extends StatefulWidget {
   final StoryButtonData buttonData;
@@ -34,9 +34,7 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
   int _pointerDownMillis = 0;
   double _pageValue = 0.0;
   bool _isInteracting = false; // Track if user is interacting
-  FocusNode _focusNode = FocusNode(); 
-  
-  
+  FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -44,7 +42,7 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
         widget.buttonData.storyController ?? StoryTimelineController();
     _stopwatch.start();
     _storyController.addListener(_onTimelineEvent);
-   
+
     super.initState();
   }
 
@@ -107,15 +105,14 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
       );
     }
     return Padding(
-      padding: const EdgeInsets.only(
-         right: 15.0,
+      padding: const EdgeInsetsDirectional.only(
+        end: 15.0,
         top: 10.0,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          
           closeButton,
         ],
       ),
@@ -141,24 +138,23 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
     return widget.buttonData.currentSegmentIndex;
   }
 
- Widget _buildPageContent() {
-  if (widget.buttonData.storyPages.isEmpty) {
-    return Container(
-      color: Colors.orange,
-      child: const Center(
-        child: Text('No pages'),
-      ),
+  Widget _buildPageContent() {
+    if (widget.buttonData.storyPages.isEmpty) {
+      return Container(
+        color: Colors.orange,
+        child: const Center(
+          child: Text('No pages'),
+        ),
+      );
+    }
+    // Wrapping interactive widgets with GestureDetector to stop event propagation
+    return GestureDetector(
+      onTap: () {
+        _focusNode.unfocus();
+      },
+      child: widget.buttonData.storyPages[_curSegmentIndex],
     );
   }
-  // Wrapping interactive widgets with GestureDetector to stop event propagation
-  return GestureDetector(
-    onTap: () {
-
-      _focusNode.unfocus();
-    },
-    child: widget.buttonData.storyPages[_curSegmentIndex],
-  );
-}
 
   bool _isLeftPartOfStory(Offset position) {
     if (!mounted) {
@@ -168,30 +164,26 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
     return position.dx <= (storyWidth * .499);
   }
 
-
-
-
   Widget _buildInteractiveWidget() {
-    final interactiveWidget = widget.buttonData.interactiveWidgets?[_curSegmentIndex];
+    final interactiveWidget =
+        widget.buttonData.interactiveWidgets?[_curSegmentIndex];
     if (interactiveWidget != null) {
       return Focus(
-      focusNode:_focusNode,
-      onFocusChange: (bool hasFocus) {
-        setState(() {
-          _isInteracting = hasFocus;
-          if (hasFocus) {
-            _storyController.pause();
-          } else {
-            _storyController.unpause();
-          }
-        });
-      },
-      child: TextFieldFinder(
-        child: interactiveWidget,
-        focusNode: _focusNode,
-      )
-    
-  );
+          focusNode: _focusNode,
+          onFocusChange: (bool hasFocus) {
+            setState(() {
+              _isInteracting = hasFocus;
+              if (hasFocus) {
+                _storyController.pause();
+              } else {
+                _storyController.unpause();
+              }
+            });
+          },
+          child: TextFieldFinder(
+            child: interactiveWidget,
+            focusNode: _focusNode,
+          ));
     }
     return SizedBox.shrink();
   }
@@ -211,137 +203,133 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
   //     ),
   //   );
   // }
-bool isKeyboardOpen() {
-  
-  return WidgetsBinding.instance.window.viewInsets.bottom > 0.0;
-}
-
+  bool isKeyboardOpen() {
+    // The Scaffolds above strip bottom insets from MediaQuery, so read the view.
+    return View.of(context).viewInsets.bottom > 0.0;
+  }
 
   Widget _buildPageStructure() {
-  return Stack(
-    children: [
-      GestureDetector(
-  onVerticalDragEnd: (details) {
-    final primaryVelocity = details.primaryVelocity ?? 0;
-    if (primaryVelocity < 0) {
-      // Swiped up
-      widget.buttonData.focusNode?.requestFocus();
-      _storyController.pause();
-      
-      // Check if keyboard is open and close it
-      if (isKeyboardOpen()) {
-        FocusManager.instance.primaryFocus?.unfocus();
-      }
-    } else if (primaryVelocity > 0) {
-      // Swiped down
-      if (isKeyboardOpen()) {
-        FocusManager.instance.primaryFocus?.unfocus();
-        
-      }else{
-         // Close the story
-      widget.onClosePressed?.call();
-      }
-      
-     
-    }
-  },
-        onTap: () {
+    return Stack(
+      children: [
+        GestureDetector(
+          onVerticalDragEnd: (details) {
+            final primaryVelocity = details.primaryVelocity ?? 0;
+            if (primaryVelocity < 0) {
+              // Swiped up
+              widget.buttonData.focusNode?.requestFocus();
+              _storyController.pause();
 
-          widget.buttonData.focusNode!.unfocus();
-          _focusNode.unfocus();
-          _storyController.unpause();
-        },
-        onLongPressStart: (details) {
-          _storyController.pause();
-        },
-        onLongPressEnd: (details) {
-          _storyController.unpause();
-        },
-        child: Listener(
-          onPointerDown: (PointerDownEvent event) {
-            _pointerDownMillis = _stopwatch.elapsedMilliseconds;
-            _pointerDownPosition = event.position;
-            if (_isInteracting) {
-              _storyController.unpause();
-              _isInteracting = false;
-
-              widget.buttonData.focusNode?.unfocus();
-              _focusNode.unfocus();
-            }
-          },
-          onPointerUp: (PointerUpEvent event) {
-            final pointerUpMillis = _stopwatch.elapsedMilliseconds;
-            final maxPressMillis = 200;
-            final diffMillis = pointerUpMillis - _pointerDownMillis;
-            if (diffMillis <= maxPressMillis) {
-              final position = event.position;
-              final distance = (position - _pointerDownPosition).distance;
-              if (distance < 5.0 && !_isInteracting) {
-                final isLeft = _isLeftPartOfStory(position);
-                _focusNode.unfocus();
-                if (isLeft) {
-                  _storyController.previousSegment();
-                } else {
-                  _storyController.nextSegment();
-                }
+              // Check if keyboard is open and close it
+              if (isKeyboardOpen()) {
+                FocusManager.instance.primaryFocus?.unfocus();
+              }
+            } else if (primaryVelocity > 0) {
+              // Swiped down
+              if (isKeyboardOpen()) {
+                FocusManager.instance.primaryFocus?.unfocus();
+              } else {
+                // Close the story
+                widget.onClosePressed?.call();
               }
             }
-            if (_isInteracting) {
-              _storyController.unpause();
-              _isInteracting = false;
-              widget.buttonData.focusNode!.unfocus();
-              _focusNode.unfocus();
-            }
           },
-          child: SizedBox(
-            width: double.infinity,
-            height: double.infinity,
-            child: _buildPageContent(),
+          onTap: () {
+            widget.buttonData.focusNode!.unfocus();
+            _focusNode.unfocus();
+            _storyController.unpause();
+          },
+          onLongPressStart: (details) {
+            _storyController.pause();
+          },
+          onLongPressEnd: (details) {
+            _storyController.unpause();
+          },
+          child: Listener(
+            onPointerDown: (PointerDownEvent event) {
+              _pointerDownMillis = _stopwatch.elapsedMilliseconds;
+              _pointerDownPosition = event.position;
+              if (_isInteracting) {
+                _storyController.unpause();
+                _isInteracting = false;
+
+                widget.buttonData.focusNode?.unfocus();
+                _focusNode.unfocus();
+              }
+            },
+            onPointerUp: (PointerUpEvent event) {
+              final pointerUpMillis = _stopwatch.elapsedMilliseconds;
+              final maxPressMillis = 200;
+              final diffMillis = pointerUpMillis - _pointerDownMillis;
+              if (diffMillis <= maxPressMillis) {
+                final position = event.position;
+                final distance = (position - _pointerDownPosition).distance;
+                if (distance < 5.0 && !_isInteracting) {
+                  final isLeft = _isLeftPartOfStory(position);
+                  final isRtl = Directionality.of(context) == TextDirection.rtl;
+                  _focusNode.unfocus();
+                  // In RTL the left half moves forward, mirroring LTR.
+                  if (isLeft != isRtl) {
+                    _storyController.previousSegment();
+                  } else {
+                    _storyController.nextSegment();
+                  }
+                }
+              }
+              if (_isInteracting) {
+                _storyController.unpause();
+                _isInteracting = false;
+                widget.buttonData.focusNode!.unfocus();
+                _focusNode.unfocus();
+              }
+            },
+            child: SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+              child: _buildPageContent(),
+            ),
           ),
         ),
-      ),
-      SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            _buildTimeline(),
-            Row(
-              
-              // crossAxisAlignment: CrossAxisAlignment.end,
-              // mainAxisSize: MainAxisSize.min,
-              children: [
-                
-                // const Expanded(child: SizedBox()),
-          widget.buttonData.optionButton!=null?Flexible(child:
-          widget.buttonData.optionButton!.length > _curSegmentIndex
-        ? widget.buttonData.optionButton![_curSegmentIndex]
-        : widget.buttonData.optionButton![0],
-           ):SizedBox.shrink(),
-              
-              _buildCloseButton(),
-              
+        SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _buildTimeline(),
+              Row(
+                // crossAxisAlignment: CrossAxisAlignment.end,
+                // mainAxisSize: MainAxisSize.min,
+                children: [
+                  // const Expanded(child: SizedBox()),
+                  widget.buttonData.optionButton != null
+                      ? Flexible(
+                          child: widget.buttonData.optionButton!.length >
+                                  _curSegmentIndex
+                              ? widget
+                                  .buttonData.optionButton![_curSegmentIndex]
+                              : widget.buttonData.optionButton![0],
+                        )
+                      : SizedBox.shrink(),
+
+                  _buildCloseButton(),
                 ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
-      ),
-      Positioned(
-        bottom: 0,
-        right: 0,
-        left: 0,
-        child: _buildInteractiveWidget())
-    ],
-  );
-}
-    @override
+        Positioned(
+            bottom: 0, right: 0, left: 0, child: _buildInteractiveWidget())
+      ],
+    );
+  }
+
+  @override
   void dispose() {
     widget.pageController?.removeListener(_onPageControllerUpdate);
     _stopwatch.stop();
     _storyController.removeListener(_onTimelineEvent);
-    
+
     _focusNode.dispose();
-     
+
     super.dispose();
   }
 
@@ -363,7 +351,6 @@ typedef StoryTimelineCallback = Function(StoryTimelineEvent);
 
 class StoryTimelineController {
   _StoryTimelineState? _state;
-
 
   final HashSet<StoryTimelineCallback> _listeners =
       HashSet<StoryTimelineCallback>();
@@ -436,13 +423,12 @@ class StoryTimeline extends StatefulWidget {
 class _StoryTimelineState extends State<StoryTimeline> {
   late Timer _timer;
   int _accumulatedTime = 0;
-  int _maxAccumulator = 0;
   bool _isPaused = false;
   bool _isTimelineAvailable = true;
+  bool _isStoryComplete = false;
 
   @override
   void initState() {
-    _setMaxAccumulator();
     _timer = Timer.periodic(
       const Duration(
         milliseconds: kStoryTimerTickMillis,
@@ -455,44 +441,58 @@ class _StoryTimelineState extends State<StoryTimeline> {
         StoryWatchedContract.onStoryStart) {
       widget.buttonData.markAsWatched();
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _numSegments > 0) {
+        widget.buttonData.onSegmentChanged?.call(_curSegmentIndex);
+      }
+    });
   }
 
- void _setMaxAccumulator() {
-  if (widget.buttonData.segmentDurations.isNotEmpty && widget.buttonData.currentSegmentIndex < widget.buttonData.segmentDurations.length) {
-    _maxAccumulator = widget.buttonData.segmentDurations[widget.buttonData.currentSegmentIndex].inMilliseconds;
-  } else {
-    _maxAccumulator = 5 ; // Default to 0 to handle edge cases
+  // Read on every tick because the app may change a duration while playing.
+  int get _maxAccumulator {
+    final durations = widget.buttonData.segmentDurations;
+    final index = widget.buttonData.currentSegmentIndex;
+    if (index >= 0 && index < durations.length) {
+      return durations[index].inMilliseconds;
+    }
+    return 5;
   }
 
-  // print('widget.buttonData.currentSegmentIndex ${widget.buttonData.currentSegmentIndex }');
-}
+  bool get _isCurrentSegmentReady {
+    return widget.buttonData.isSegmentReady?.call(_curSegmentIndex) ?? true;
+  }
 
   void _setTimelineAvailable(bool value) {
     _isTimelineAvailable = value;
   }
 
   void _onTimer(timer) {
-    if (_isPaused || !_isTimelineAvailable) {
+    if (_isPaused ||
+        !_isTimelineAvailable ||
+        _isStoryComplete ||
+        !_isCurrentSegmentReady) {
       return;
     }
-    if (_accumulatedTime + kStoryTimerTickMillis <= _maxAccumulator) {
-      _accumulatedTime += kStoryTimerTickMillis;
-      if (_accumulatedTime >= _maxAccumulator) {
-        if (_isLastSegment) {
-          _onStoryComplete();
-        } else {
-          _accumulatedTime = 0;
-          _curSegmentIndex++;
-          _setMaxAccumulator();
-
-          _onSegmentComplete();
-        }
+    final maxAccumulator = _maxAccumulator;
+    // Clamp because a duration set from a video need not be a tick multiple.
+    _accumulatedTime = math.min(
+      _accumulatedTime + kStoryTimerTickMillis,
+      maxAccumulator,
+    );
+    if (_accumulatedTime >= maxAccumulator) {
+      if (_isLastSegment) {
+        _onStoryComplete();
+      } else {
+        _accumulatedTime = 0;
+        _curSegmentIndex++;
+        _onSegmentComplete();
       }
-      setState(() {});
     }
+    setState(() {});
   }
 
   void _onStoryComplete() {
+    _isStoryComplete = true;
     if (widget.buttonData.storyWatchedContract ==
         StoryWatchedContract.onStoryEnd) {
       widget.buttonData.markAsWatched();
@@ -517,35 +517,39 @@ class _StoryTimelineState extends State<StoryTimeline> {
   }
 
   set _curSegmentIndex(int value) {
-    if(widget.buttonData.watchedState!=null) {widget.buttonData.watchedState!();}
+    if (widget.buttonData.watchedState != null) {
+      widget.buttonData.watchedState!();
+    }
     if (value >= _numSegments) {
       value = _numSegments - 1;
     } else if (value < 0) {
       value = 0;
     }
+    final hasChanged = value != widget.buttonData.currentSegmentIndex;
     widget.buttonData.currentSegmentIndex = value;
-   _setMaxAccumulator();
+    if (hasChanged) {
+      widget.buttonData.onSegmentChanged?.call(value);
+    }
   }
 
-int get _curSegmentIndex {
-  int index = widget.buttonData.currentSegmentIndex;
-  if (index >= _numSegments) {
-    index = _numSegments - 1;
-  } else if (index < 0) {
-    index = 0;
+  int get _curSegmentIndex {
+    int index = widget.buttonData.currentSegmentIndex;
+    if (index >= _numSegments) {
+      index = _numSegments - 1;
+    } else if (index < 0) {
+      index = 0;
+    }
+    return index;
   }
-  return index;
-}
 
   void nextSegment() {
-     
     if (_isLastSegment) {
       _accumulatedTime = _maxAccumulator;
+      _isStoryComplete = true;
       widget.controller._onStoryComplete();
     } else {
       _accumulatedTime = 0;
       _curSegmentIndex++;
-      _setMaxAccumulator();
       _onSegmentComplete();
     }
   }
@@ -553,10 +557,10 @@ int get _curSegmentIndex {
   void previousSegment() {
     if (_accumulatedTime == _maxAccumulator) {
       _accumulatedTime = 0;
+      _isStoryComplete = false;
     } else {
       _accumulatedTime = 0;
       _curSegmentIndex--;
-      _setMaxAccumulator();
       _onSegmentComplete();
     }
   }
@@ -586,9 +590,10 @@ int get _curSegmentIndex {
           backgroundColor: widget.buttonData.timelineBackgroundColor,
           curSegmentIndex: _curSegmentIndex,
           numSegments: _numSegments,
-          percent: _accumulatedTime / _maxAccumulator,
+          percent: (_accumulatedTime / _maxAccumulator).clamp(0.0, 1.0),
           spacing: widget.buttonData.timelineSpacing,
           thikness: widget.buttonData.timelineThikness,
+          textDirection: Directionality.of(context),
         ),
       ),
     );
@@ -603,6 +608,7 @@ class _TimelinePainter extends CustomPainter {
   final double percent;
   final double spacing;
   final double thikness;
+  final TextDirection textDirection;
 
   _TimelinePainter({
     required this.fillColor,
@@ -612,7 +618,13 @@ class _TimelinePainter extends CustomPainter {
     required this.percent,
     required this.spacing,
     required this.thikness,
+    required this.textDirection,
   });
+
+  // Segments are laid out left to right, then mirrored for RTL.
+  double _directionalX(double ltrX, double width) {
+    return textDirection == TextDirection.rtl ? width - ltrX : ltrX;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -642,8 +654,8 @@ class _TimelinePainter extends CustomPainter {
       );
 
       canvas.drawLine(
-        start,
-        end,
+        Offset(_directionalX(start.dx, size.width), 0.0),
+        Offset(_directionalX(end.dx, size.width), 0.0),
         bgPaint,
       );
     }
@@ -671,8 +683,8 @@ class _TimelinePainter extends CustomPainter {
       );
       if (endValue != start.dx) {
         canvas.drawLine(
-          start,
-          end,
+          Offset(_directionalX(start.dx, size.width), 0.0),
+          Offset(_directionalX(end.dx, size.width), 0.0),
           fillPaint,
         );
       }
