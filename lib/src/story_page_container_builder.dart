@@ -165,6 +165,7 @@ class _StoryPageContainerBuilderState extends State<StoryPageContainerBuilder>
   @override
   Widget build(BuildContext context) {
     final appTextDirection = Directionality.of(context);
+    final isRtl = appTextDirection == TextDirection.rtl;
     return Directionality(
       textDirection: TextDirection.ltr,
       child: IgnorePointer(
@@ -221,45 +222,53 @@ class _StoryPageContainerBuilderState extends State<StoryPageContainerBuilder>
                   child: SafeArea(
                     bottom: widget.settings.safeAreaBottom,
                     top: widget.settings.safeAreaTop,
-                    child: PageView.builder(
-                      physics: _storyPageTransform.pageScrollPhysics,
-                      controller: _pageController,
-                      itemBuilder: ((context, index) {
-                        final childIndex = index % itemCount;
-                        final buttonData =
-                            widget.settings.allButtonDatas[childIndex];
-                        // Paging stays LTR; the page itself follows the app.
-                        final child = Directionality(
-                          textDirection: appTextDirection,
-                          child: StoryPageContainerView(
-                            buttonData: buttonData,
-                            onClosePressed: _close,
-                            pageController: _pageController,
-                            onStoryComplete: _onStoryComplete,
-                          ),
-                        );
-                        return _storyPageTransform.transform(
-                          context,
-                          child,
-                          childIndex,
-                          _currentPage,
-                          _pageDelta,
-                          (index) {
-                            if (widget.settings.allButtonDatas[childIndex]
-                                        .currentIndex >=
-                                    widget.settings.allButtonDatas[childIndex]
-                                            .storyPages.length -
-                                        1 ||
-                                widget.settings.buttonData
-                                    .markAsWatchedOnCreate) {
-                              widget.settings.allButtonDatas[childIndex]
-                                  .markAsWatched();
-                            }
-                            // widget.settings.buttonData.markAsWatched();
-                          },
-                        );
-                      }),
-                      itemCount: itemCount,
+                    // Right to left mirrors the pager, so a swipe to the right
+                    // brings the next story; each page is mirrored back below.
+                    child: Transform.flip(
+                      flipX: isRtl,
+                      child: PageView.builder(
+                        physics: _storyPageTransform.pageScrollPhysics,
+                        controller: _pageController,
+                        itemBuilder: ((context, index) {
+                          final childIndex = index % itemCount;
+                          final buttonData =
+                              widget.settings.allButtonDatas[childIndex];
+                          // Paging stays LTR; the page itself follows the app.
+                          final child = Transform.flip(
+                            flipX: isRtl,
+                            child: Directionality(
+                              textDirection: appTextDirection,
+                              child: StoryPageContainerView(
+                                buttonData: buttonData,
+                                onClosePressed: _close,
+                                pageController: _pageController,
+                                onStoryComplete: _onStoryComplete,
+                              ),
+                            ),
+                          );
+                          return _storyPageTransform.transform(
+                            context,
+                            child,
+                            childIndex,
+                            _currentPage,
+                            _pageDelta,
+                            (index) {
+                              if (widget.settings.allButtonDatas[childIndex]
+                                          .currentIndex >=
+                                      widget.settings.allButtonDatas[childIndex]
+                                              .storyPages.length -
+                                          1 ||
+                                  widget.settings.buttonData
+                                      .markAsWatchedOnCreate) {
+                                widget.settings.allButtonDatas[childIndex]
+                                    .markAsWatched();
+                              }
+                              // widget.settings.buttonData.markAsWatched();
+                            },
+                          );
+                        }),
+                        itemCount: itemCount,
+                      ),
                     ),
                   ),
                 ),
