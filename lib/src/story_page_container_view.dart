@@ -152,7 +152,11 @@ class _StoryPageContainerViewState extends State<StoryPageContainerView>
       onTap: () {
         _focusNode.unfocus();
       },
-      child: widget.buttonData.storyPages[_curSegmentIndex],
+      // Keyed so each segment gets its own state instead of reusing the previous one.
+      child: KeyedSubtree(
+        key: ValueKey<int>(_curSegmentIndex),
+        child: widget.buttonData.storyPages[_curSegmentIndex],
+      ),
     );
   }
 
@@ -555,6 +559,7 @@ class _StoryTimelineState extends State<StoryTimeline> {
   }
 
   void previousSegment() {
+    final int before = _curSegmentIndex;
     if (_accumulatedTime == _maxAccumulator) {
       _accumulatedTime = 0;
       _isStoryComplete = false;
@@ -562,6 +567,10 @@ class _StoryTimelineState extends State<StoryTimeline> {
       _accumulatedTime = 0;
       _curSegmentIndex--;
       _onSegmentComplete();
+    }
+    // A segment that starts over must restart its video too, so report it.
+    if (_curSegmentIndex == before) {
+      widget.buttonData.onSegmentChanged?.call(before);
     }
   }
 

@@ -270,7 +270,8 @@ class StoryButtonData {
   final bool Function(int segmentIndex)? isSegmentReady;
 
   /// Called with the current segment index when the story timeline
-  /// starts and whenever the current segment changes.
+  /// starts, whenever the current segment changes, and when the user
+  /// goes back on a segment so it starts over.
   final ValueChanged<int>? onSegmentChanged;
   final BoxDecoration containerBackgroundDecoration;
   final Color timelineFillColor;
